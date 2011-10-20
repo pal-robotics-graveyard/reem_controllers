@@ -1,0 +1,8 @@
+<stack>
+  <description brief="reem_controllers">reem_controllers</description>
+  <author>Maintained by Adolfo Rodriguez Tsouroukdissian</author>
+  <license>Modified BSD</license>  
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/reem_controllers</url>
+  <depend stack="ros" />
+</stack>

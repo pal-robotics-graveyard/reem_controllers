@@ -1,0 +1,5 @@
+<library path="lib/libjoint_group_position_controller">
+  <class name="joint_group_position_controller/JointGroupPositionController"
+         type="controller::JointGroupPositionController"
+         base_class_type="pr2_controller_interface::Controller" />
+</library>

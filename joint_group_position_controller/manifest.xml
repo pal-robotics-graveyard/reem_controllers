@@ -1,0 +1,25 @@
+<package>
+  <description brief="joint_group_position_controller">
+
+     joint_group_position_controller
+
+  </description>
+  <author>Adolfo Rodriguez Tsouroukdissian</author>
+  <license>Modified BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/joint_group_position_controller</url>
+  <depend package="angles" />
+  <depend package="control_toolbox" />
+  <depend package="pluginlib"/>
+  <depend package="pr2_controller_interface"/>
+  <depend package="roscpp"/>
+
+  <depend package="trajectory_msgs" />
+  
+  <export>
+    <cpp cflags="-I${prefix}/include" lflags="-L${prefix}/lib -ljoint_group_position_controller -Wl,-rpath,${prefix}"/>
+    <pr2_controller_interface plugin="${prefix}/joint_group_position_controller_plugins.xml"/>
+  </export>
+</package>
+
+
