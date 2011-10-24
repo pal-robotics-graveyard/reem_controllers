@@ -1,5 +1,9 @@
 <stack>
-  <description brief="reem_controllers">reem_controllers</description>
+  <description brief="reem_controllers">
+    Controllers that run in the pr2_controller_manager's realtime loop. These exist to provide a pr2-compatible
+    interface and allow to setup a Gazebo simulation of REEM rather easily.
+    The actual REEM robot does not rely on these controllers.
+  </description>
   <author>Maintained by Adolfo Rodriguez Tsouroukdissian</author>
   <license>Modified BSD</license>  
   <review status="unreviewed" notes=""/>
