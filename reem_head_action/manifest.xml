@@ -1,0 +1,29 @@
+<package>
+  <description brief="reem_head_action">
+
+  The REEM head action is a node that provides an action interface for
+  pointing the head of the REEM.  It passes trajectory goals to the
+  controller, and reports success when they have finished executing.
+
+  </description>
+  <author>Stuart Glaser. Adapted by Hilario Tome.</author>
+  <license>Modified BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/reem_head_action</url>
+
+  <depend package="geometry_msgs" />
+  <depend package="trajectory_msgs" />
+  <depend package="sensor_msgs" />
+  <depend package="pr2_controllers_msgs" />
+
+  <depend package="roscpp" />
+  <depend package="message_filters" />
+  <depend package="tf" />
+  <depend package="tf_conversions" />
+  <depend package="actionlib" />
+  <depend package="kdl_parser" />
+
+  <rosdep name="tinyxml" />
+</package>
+
+
