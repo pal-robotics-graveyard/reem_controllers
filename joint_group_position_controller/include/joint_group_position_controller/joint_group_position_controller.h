@@ -71,8 +71,9 @@ public:
 
   bool init(pr2_mechanism_model::RobotState *robot, ros::NodeHandle &n);
 
-  virtual void starting();
-  virtual void update();
+  void starting();
+  void update(const ros::Time&, const ros::Duration&) {update();} // ros_control compatibility fix
+  void update();
 
 private:
   pr2_mechanism_model::RobotState *robot_;

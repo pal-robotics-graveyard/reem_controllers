@@ -156,11 +156,11 @@ void JointGroupPositionController::update()
     }
     else // Prismatic
     {
-      errors_[i] = joints_[i]->position_ - ref_pos_[i];
+      errors_[i] = ref_pos_[i] - joints_[i]->position_;
     }
 
     // Commanded effort
-    joints_[i]->commanded_effort_ = pids_[i].updatePid(errors_[i], dt);
+    joints_[i]->commanded_effort_ = pids_[i].computeCommand(errors_[i], dt);
   }
 }
 
