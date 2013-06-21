@@ -1,0 +1,9 @@
+<library path="lib/libsot_controller">
+
+  <class name="sot_controller/SOTController" type="sot_controller::SOTController" base_class_type="controller_interface::ControllerBase">
+    <description>
+      Controller interface for the stack of tasks.
+    </description>
+  </class>
+  
+</library>
