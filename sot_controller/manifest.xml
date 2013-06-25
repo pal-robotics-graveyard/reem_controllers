@@ -1,0 +1,32 @@
+<package>
+  <description brief="sot_controller">
+
+     sot_controller
+
+  </description>
+  <author>Gen</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://</url>
+
+	<rosdep name="dynamic-graph"/>
+  <rosdep name="dynamic-graph-python"/>
+  <rosdep name="sot-core"/>
+  <rosdep name="sot-dynamic"/>
+
+  <depend package="controller_interface"/>
+  <depend package="controllers_msgs"/>
+  <depend package="control_toolbox" />
+  <depend package="realtime_tools" />
+  <depend package="urdf" />
+  
+  <depend package="dynamic_graph_bridge"/>
+	<depend package="jrl_dynamics_urdf"/>
+
+  <depend package="forward_command_controller"/>
+
+  <export>
+    <controller_interface plugin="${prefix}/sot_controller_plugins.xml" />
+  </export>
+
+</package>
