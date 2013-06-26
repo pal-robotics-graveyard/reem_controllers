@@ -31,7 +31,7 @@ runPython(std::ostream& file, const std::string& command, dynamicgraph::Interpre
 
 SotReemController::SotReemController():
     interpreter_ (dynamicgraph::rosInit (false)),
-    device_ (new sot_reem_device::SotReemDevice("robot_device")) {}
+    device_ (new SotReemDevice("robot_device")) {}
 
 
 SotReemController::~SotReemController() {
@@ -46,8 +46,6 @@ bool SotReemController::init(hardware_interface::PositionJointInterface *robot, 
     // Call prologue
     try
     {
-        //std::string pythonpath;
-        //n.getParam ("python_path", pythonpath);
 
         std::ofstream aof(out_python_file.c_str());
 
@@ -68,13 +66,8 @@ bool SotReemController::init(hardware_interface::PositionJointInterface *robot, 
         //int nDofs = actuatedJointsNamesList.size();
         //runPython (aof,"initConf = (0.,) * "+static_cast<std::ostringstream*>( &(std::ostringstream() << nDofs) )->str(),interpreter_);
         runPython(aof,"from dynamic_graph.sot.reem.prologue import robot, solver", interpreter_);
-
-        // Calling again rosInit here to start the spinner. It will
-        // deal with topics and services callbacks in a separate, non
-        // real-time thread. See roscpp documentation for more
-        // information.
         aof.close();
-        dynamicgraph::rosInit (true);
+
     }
 
     catch(const std::exception& e)
@@ -89,20 +82,18 @@ bool SotReemController::init(hardware_interface::PositionJointInterface *robot, 
         return false;
     }
 
-    dynamicgraph::rosInit (true);
-
     // Get joint names from the parameter server
     using namespace XmlRpc;
     XmlRpcValue joint_names;
     ros::NodeHandle nh;
     if (!nh.getParam("jrl_map", joint_names)) //TODO: root_nh or a new global named node?
     {
-        ROS_ERROR_STREAM("No joints given (namespace:" << controller_nh.getNamespace() << ").");
+        ROS_ERROR_STREAM("No joints given (namespace:" << nh.getNamespace() << ").");
         return false;
     }
     if (joint_names.getType() != XmlRpcValue::TypeArray)
     {
-        ROS_ERROR_STREAM("Malformed joint specification (namespace:" << controller_nh.getNamespace() << ").");
+        ROS_ERROR_STREAM("Malformed joint specification (namespace:" << nh.getNamespace() << ").");
         return false;
     }
 
@@ -115,7 +106,7 @@ bool SotReemController::init(hardware_interface::PositionJointInterface *robot, 
         XmlRpcValue &name_value = joint_names[i];
         if (name_value.getType() != XmlRpcValue::TypeString)
         {
-            ROS_ERROR_STREAM("Array of joint names should contain all strings (namespace:" << controller_nh.getNamespace() << ").");
+            ROS_ERROR_STREAM("Array of joint names should contain all strings (namespace:" << nh.getNamespace() << ").");
             return false;
         }
         const std::string joint_name = static_cast<std::string>(name_value);
@@ -123,7 +114,6 @@ bool SotReemController::init(hardware_interface::PositionJointInterface *robot, 
         // Get a joint handle
         try
         {
-            //joints_tmp.push_back(robot->getJointHandle(joint_name)); //getHandle
 
             joints_tmp[i] = robot->getHandle(joint_name);
 
@@ -140,6 +130,10 @@ bool SotReemController::init(hardware_interface::PositionJointInterface *robot, 
 
     // Member list of joint handles is updated only once all resources have been claimed
     joints_ = joints_tmp;
+
+    std::cout<<"Actuated joints:"<<std::endl;
+    for (int i=0; i<joints_.size();i++)
+        std::cout<<joints_[i].getName()<<std::endl;
 
     // Call init inside sot_reem_device
     device_->init();

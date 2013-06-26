@@ -8,7 +8,7 @@
 /**
  * \brief Position controller for the REEM robot. It is wrapping sot_reem_device.
  *
- * This class is interfaced with ROS ... should be...
+ * This class is works as interface for ros_control.
  *
  */
 
@@ -21,7 +21,7 @@ namespace sot_reem_controller
     /// Embedded python interpreter accessible via a ROS service.
     dynamicgraph::Interpreter interpreter_;
     /// Pointer to Entity StackOfTasks
-    sot_reem_device::SotReemDevice* device_;
+    SotReemDevice* device_;
 
   public:
     SotReemController();

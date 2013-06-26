@@ -10,17 +10,15 @@
 #include <dynamic-graph/all-commands.h>
 #include "sot/core/api.hh"
 
-namespace sot_reem_device {
 
+using sot_reem_controller::SotReemDevice;
 using dynamicgraph::sot::ExceptionFactory;
 
-SotReemDevice::SotReemDevice(const std::string& entityName):
-    dynamicgraph::sot::Device(entityName),
-    //timestep_ (0.001),
-    previousState_ ()
-    //lastTime_ ()
-{}
+const std::string SotReemDevice::CLASS_NAME = "SotReemDevice";
 
+SotReemDevice::SotReemDevice(const std::string& entityName):
+    dynamicgraph::sot::Device(entityName)
+{}
 
 SotReemDevice::~SotReemDevice(){}
 
@@ -32,8 +30,6 @@ bool SotReemDevice::init()
 
 void SotReemDevice::starting(const ros::Time& time,joints_t& joints_){
 
-    //lastTime_ = time;
-
     // Read state from motor command
     int t = stateSOUT.getTime () + 1;
     maal::boost::Vector state = stateSOUT.access (t);
@@ -43,16 +39,16 @@ void SotReemDevice::starting(const ros::Time& time,joints_t& joints_){
     sotDEBUG (25) << "joints_.size () = " << joints_.size () << std::endl;
 
     if (state.size() == joints_.size() + offset)
-        for (unsigned int i = 0 ; i < joints_.size() ; i++)
+        for (unsigned int i = 0 ; i < joints_.size() ; i++){
             state(i+offset) = joints_[i].getPosition();
+            std::cout<<"joint: "<<joints_[i].getName()<<" init state: "<<state(i+offset)<<std::endl;
+        }
     else{
         std::stringstream err;
         err << "state.size() ("<< state.size() <<") is different from joints_.size() + offset ("<< (joints_.size()) <<").";
-        //err = ss.str();
         throw std::range_error(err.str());
     }
 
-    previousState_ = state;
     stateSOUT.setConstant (state);
 
 }
@@ -68,25 +64,12 @@ void SotReemDevice::update(const ros::Time& time, const ros::Duration& period, j
     {}
 
     sotDEBUG (25) << "state = " << state_ << std::endl;
-    sotDEBUG (25) << "diff  = " << state_ - previousState_ << std::endl;
 
-    //HACK
-    //previousState_ = state_;
-    //ros::Duration dt = robot_->getTime () - lastTime_;
-    //lastTime_ = time;
-
-    //double gain = 10.0;
     for (unsigned int i = 0; i<joints_.size(); i++){
-        // Note: this is an open loop control...
-        // double command_ = gain * (state_(i+offset) - joints_[i].getPosition());
-        //double command_ = state_(i);
-        joints_[i].setCommand(state_(i));
+        joints_[i].setCommand(state_(i+offset));
+        std::cout<<"Joint: "<<i+1<<" name: "<<joints_[i].getName()<<" effort: "<<state_(i+offset)<<std::endl;
     }
 
-    previousState_ = state_;
-
 }
 
-
-}
 

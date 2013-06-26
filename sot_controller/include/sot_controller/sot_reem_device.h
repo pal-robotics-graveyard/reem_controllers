@@ -6,19 +6,12 @@
 
 /**
  * \brief Interface controller for the stack of tasks. It is wrapped by sot_reem_controller.
- *
- * This class works as interface for ROS ... why?
- *
  */
 
 typedef std::vector<hardware_interface::JointHandle> joints_t;
 
-namespace sot_reem_device
+namespace sot_reem_controller
 {
-
-//typedef std::map<std::string, std::pair<boost::shared_ptr<const urdf::Joint>, boost::shared_ptr<pr2_mechanism_model::JointState>>> jointMap_t;
-
-//typedef std::map<std::string,int> stateMap_t;
 
 class SotReemDevice : public dynamicgraph::sot::Device
 {
@@ -47,11 +40,8 @@ public:
 private:
     /// \brief Default offset.
     static const unsigned int offset = 6;
-    //double timestep_;
-    //ros::Time lastTime_;
-    ml::Vector previousState_;
 };
-} // end of namespace sot_pr2
 
+}
 
 # endif
