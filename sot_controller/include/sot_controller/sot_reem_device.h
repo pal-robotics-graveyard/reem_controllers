@@ -11,6 +11,8 @@
  *
  */
 
+typedef std::vector<hardware_interface::JointHandle> joints_t;
+
 namespace sot_reem_device
 {
 
@@ -31,27 +33,23 @@ public:
     /// \name Inherited control methods.
     /// \{
 
-    /// \brief Non real-time entity start.
+    /// \brief Non real-time device start.
     bool init();
 
     /// \brief Called when plug-in is started.
-    void starting(const ros::Time& time);
+    void starting(const ros::Time& time,joints_t& joints_);
 
     /// \brief Called at each control loop.
-    void update(const ros::Time& time, const ros::Duration& period);
+    void update(const ros::Time& time, const ros::Duration& period, joints_t& joints_);
 
     /// \}
 
 private:
-    /// \brief Default integration step (i.e. 1ms for REEM).
-    static const double TIMESTEP_DEFAULT;
-
-    double timestep_;
-    //stateMap_t stateMap;
+    /// \brief Default offset.
+    static const unsigned int offset = 6;
+    //double timestep_;
+    //ros::Time lastTime_;
     ml::Vector previousState_;
-    //std::vector<boost::shared_ptr<control_toolbox::Pid> > pids_;
-    ros::Time lastTime_;
-    //pr2_mechanism_model::RobotState* robot_;
 };
 } // end of namespace sot_pr2
 

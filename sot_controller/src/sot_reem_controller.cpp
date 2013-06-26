@@ -31,7 +31,7 @@ runPython(std::ostream& file, const std::string& command, dynamicgraph::Interpre
 
 SotReemController::SotReemController():
     interpreter_ (dynamicgraph::rosInit (false)),
-    entity_ (new sot_reem_device::SotReemDevice("robot_device")) {}
+    device_ (new sot_reem_device::SotReemDevice("robot_device")) {}
 
 
 SotReemController::~SotReemController() {
@@ -67,7 +67,7 @@ bool SotReemController::init(hardware_interface::PositionJointInterface *robot, 
         runPython (aof, "sys.path = path", interpreter_);
         //int nDofs = actuatedJointsNamesList.size();
         //runPython (aof,"initConf = (0.,) * "+static_cast<std::ostringstream*>( &(std::ostringstream() << nDofs) )->str(),interpreter_);
-        runPython(aof,"from dynamic_graph.sot.pr2.prologue import robot, solver", interpreter_);
+        runPython(aof,"from dynamic_graph.sot.reem.prologue import robot, solver", interpreter_);
 
         // Calling again rosInit here to start the spinner. It will
         // deal with topics and services callbacks in a separate, non
@@ -94,7 +94,8 @@ bool SotReemController::init(hardware_interface::PositionJointInterface *robot, 
     // Get joint names from the parameter server
     using namespace XmlRpc;
     XmlRpcValue joint_names;
-    if (!controller_nh.getParam("jrl_map", joint_names))
+    ros::NodeHandle nh;
+    if (!nh.getParam("jrl_map", joint_names)) //TODO: root_nh or a new global named node?
     {
         ROS_ERROR_STREAM("No joints given (namespace:" << controller_nh.getNamespace() << ").");
         return false;
@@ -109,7 +110,6 @@ bool SotReemController::init(hardware_interface::PositionJointInterface *robot, 
 
     joints_tmp.resize(joint_names.size());
     std::fill(joints_tmp.begin(),joints_tmp.end(),hardware_interface::JointHandle()); // Maybe it is not so efficient
-
     for (int i = 0; i < joint_names.size(); ++i)
     {
         XmlRpcValue &name_value = joint_names[i];
@@ -142,21 +142,25 @@ bool SotReemController::init(hardware_interface::PositionJointInterface *robot, 
     joints_ = joints_tmp;
 
     // Call init inside sot_reem_device
-    entity_->init();
+    device_->init();
 
     return true;
 }
 
+void SotReemController::starting(const ros::Time& time) { //TODO: time is the current time?
 
-void SotReemController::starting(const ros::Time& time) {
-
-
-
+    try{
+        device_->starting(time,joints_);
+    }
+    catch(const std::range_error& e)
+    {
+        ROS_ERROR_STREAM(e.what());
+    }
 }
 
-void SotReemController::update(const ros::Time& time, const ros::Duration& period) {
+void SotReemController::update(const ros::Time& time, const ros::Duration& period) { //TODO: time is the current time? period==dt?
 
-
+    device_->update(time,period,joints_);
 
 }
 
@@ -167,4 +171,3 @@ PLUGINLIB_DECLARE_CLASS(sot_reem_controller,
                         SotReemController,
                         sot_reem_controller::SotReemController,
                         controller_interface::ControllerBase)
-

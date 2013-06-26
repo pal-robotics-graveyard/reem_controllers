@@ -12,8 +12,6 @@
  *
  */
 
-typedef std::map<std::string,int> JrlJointsMap_t;
-
 namespace sot_reem_controller
 {
   class SotReemController : public controller_interface::Controller<hardware_interface::PositionJointInterface>
@@ -23,7 +21,7 @@ namespace sot_reem_controller
     /// Embedded python interpreter accessible via a ROS service.
     dynamicgraph::Interpreter interpreter_;
     /// Pointer to Entity StackOfTasks
-    sot_reem_device::SotReemDevice* entity_;
+    sot_reem_device::SotReemDevice* device_;
 
   public:
     SotReemController();
@@ -33,7 +31,7 @@ namespace sot_reem_controller
     void starting(const ros::Time& time);
     void update(const ros::Time& time, const ros::Duration& period);
 
-    std::vector<hardware_interface::JointHandle> joints_;
+    joints_t joints_;
 
   };
 }
