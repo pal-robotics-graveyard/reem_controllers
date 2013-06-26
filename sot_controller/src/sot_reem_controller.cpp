@@ -33,7 +33,6 @@ SotReemController::SotReemController():
     interpreter_ (dynamicgraph::rosInit (false)),
     device_ (new SotReemDevice("robot_device")) {}
 
-
 SotReemController::~SotReemController() {
     for (int i = 0; i < joints_.size(); ++i){
         ROS_INFO("Current joint_%d position: %f64\n",i+1,joints_[i].getPosition());
@@ -67,7 +66,6 @@ bool SotReemController::init(hardware_interface::PositionJointInterface *robot, 
         //runPython (aof,"initConf = (0.,) * "+static_cast<std::ostringstream*>( &(std::ostringstream() << nDofs) )->str(),interpreter_);
         runPython(aof,"from dynamic_graph.sot.reem.prologue import robot, solver", interpreter_);
         aof.close();
-
     }
 
     catch(const std::exception& e)
@@ -130,10 +128,6 @@ bool SotReemController::init(hardware_interface::PositionJointInterface *robot, 
 
     // Member list of joint handles is updated only once all resources have been claimed
     joints_ = joints_tmp;
-
-    std::cout<<"Actuated joints:"<<std::endl;
-    for (int i=0; i<joints_.size();i++)
-        std::cout<<joints_[i].getName()<<std::endl;
 
     // Call init inside sot_reem_device
     device_->init();

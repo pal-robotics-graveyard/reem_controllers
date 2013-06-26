@@ -10,7 +10,6 @@
 #include <dynamic-graph/all-commands.h>
 #include "sot/core/api.hh"
 
-
 using sot_reem_controller::SotReemDevice;
 using dynamicgraph::sot::ExceptionFactory;
 
@@ -29,6 +28,7 @@ bool SotReemDevice::init()
 }
 
 void SotReemDevice::starting(const ros::Time& time,joints_t& joints_){
+
 
     // Read state from motor command
     int t = stateSOUT.getTime () + 1;
@@ -71,5 +71,4 @@ void SotReemDevice::update(const ros::Time& time, const ros::Duration& period, j
     }
 
 }
-
 
