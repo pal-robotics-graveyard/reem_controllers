@@ -9,11 +9,13 @@
   <review status="unreviewed" notes=""/>
   <url>http://</url>
 
+	<depend package="rospy"/>
+
 	<rosdep name="dynamic-graph"/>
   <rosdep name="dynamic-graph-python"/>
   <rosdep name="sot-core"/>
   <rosdep name="sot-dynamic"/>
-
+  
   <depend package="controller_interface"/>
   <depend package="controllers_msgs"/>
   <depend package="control_toolbox" />

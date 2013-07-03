@@ -67,7 +67,7 @@ void SotReemDevice::update(const ros::Time& time, const ros::Duration& period, j
 
     for (unsigned int i = 0; i<joints_.size(); i++){
         joints_[i].setCommand(state_(i+offset));
-        std::cout<<"Joint: "<<i+1<<" name: "<<joints_[i].getName()<<" effort: "<<state_(i+offset)<<std::endl;
+        //std::cout<<"Joint: "<<i+1<<" name: "<<joints_[i].getName()<<" effort: "<<state_(i+offset)<<std::endl;
     }
 
 }

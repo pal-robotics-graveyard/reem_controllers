@@ -8,7 +8,7 @@
 /**
  * \brief Position controller for the REEM robot. It is wrapping sot_reem_device.
  *
- * This class is works as interface for ros_control.
+ * This class works as interface for ros_control.
  *
  */
 
