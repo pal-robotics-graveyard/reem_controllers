@@ -28,8 +28,6 @@ robot.tasks['right-wrist'].controlGain.value = 100
 
 robot.features['right-wrist']._reference.signal('position').value = ((1, 0, 0, x), (0, 1, 0, y), (0, 0, 1, z), (0, 0, 0, 1))
 
-
-
 robot.tasks['right-wrist'].controlGain.value = 10
 robot.features['right-wrist']._reference.signal('position').value = ((1, 0, 0, 0.4), (0, 1, 0, -0.9), (0, 0, 1, 0.9), (0, 0, 0, 1))
 

@@ -37,29 +37,22 @@ def visDef(frame_1,frame_2,xyz):
 
 jointLimits_flag = 1
 contact_waist_flag = 1
-increment_pos_flag = 0
 gaze_flag = 1
 rw_flag = 1
+lw_flag = 0
+com_flag = 1
 
 quat = numpy.array([-0.377,-0.06,-0.142,0.91])
-
-if increment_pos_flag:
-    x0 = taskRW.feature.position.value[0][3]
-    y0 = taskRW.feature.position.value[1][3]
-    z0 = taskRW.feature.position.value[2][3]
-    dx = 0.6
-    dy = -0.2
-    dz = 0.4
-    xyz = numpy.array([x0+dx,y0+dy,z0+dz])
-else:
-    xyz = numpy.array([0.35,-0.4,1.25])
-
+xyz = numpy.array([0.35,-0.4,1.25])
 goal_rw = goalDef("/torso_base_link","/arm_right_tool_link",xyz,quat)
+goal_lw = goalDef("/torso_base_link","/arm_left_tool_link",xyz,quat)
 goal_gz = visDef("/torso_base_link","/head_2_link",xyz)
 
 taskRW = MetaTaskKine6d('rw',robot.dynamic,'right-wrist','right-wrist')
 taskRW.feature.frame('current')
-taskRW.feature.position.value
+
+taskLW = MetaTaskKine6d('lw',robot.dynamic,'left-wrist','left-wrist')
+taskLW.feature.frame('current')
 
 taskGAZE = MetaTaskKine6d('gz',robot.dynamic,'gaze','gaze')
 taskGAZE.feature.frame('current')
@@ -74,13 +67,17 @@ taskJL.referenceSup.value = robot.dynamic.upperJl.value
 taskJL.dt.value = 0.001
 taskJL.selec.value = toFlags(range(6,robot.dimension))
 
-if jointLimits_flag:
-    push(taskJL)
-
 taskWT = MetaTaskKine6d('wt',robot.dynamic,'waist','waist')
 taskWT.feature.frame('desired')
 taskWT.gain.setConstant(1000)
-taskWT.feature.position.value
+
+taskCOM = MetaTaskKineCom(robot.dynamic)
+robot.dynamic.com.recompute(0)
+taskCOM.featureDes.errorIN.value = robot.dynamic.com.value
+taskCOM.task.controlGain.value = 10
+
+if jointLimits_flag:
+    push(taskJL)
 
 if contact_waist_flag:
     solver.addContact(taskWT)
@@ -88,20 +85,31 @@ if contact_waist_flag:
 if rw_flag:
     push(taskRW)
 
+if lw_flag:
+    push(taskLW)
+
 if gaze_flag:
     push(taskGAZE)
 
+if com_flag:
+    push(taskCOM)
+
+time.sleep(5)
+
 if rw_flag:
     gotoNd(taskRW,goal_rw,'111111',100)
+
+if lw_flag:
+    gotoNd(taskLW,goal_lw,'111000',100)
 
 if gaze_flag:
     gotoNd(taskGAZE,goal_gz,'111000',10)
 
 time.sleep(15)
 
-if rw_flag:
-    err2file(taskRW,filename)
-  
+err2file(taskRW,filename,"w")
+err2file(taskLW,filename,"a")
+err2file(taskGAZE,filename,"a")
   
 #Unused code:
 """      
@@ -114,6 +122,8 @@ for elem in robot.device.state.value:
         out_file.write("Rank: " + str(count) +  " state value: " + str(elem) + " lower bound: " + str(l) + "\n")
     if (elem > u):
         out_file.write("Rank: " + str(count) +  " state value: " + str(elem) + " upper bound: " + str(u) + "\n")
+        
+robot.dynamic.com.recompute(robot.device.state.time)       
 """
 
 

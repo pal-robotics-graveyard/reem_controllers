@@ -6,8 +6,8 @@ def push(task):
     else: taskName=task.name
     solver.push(taskName)
     
-def err2file(task,filename):
-    out_file = open(filename,"a")
+def err2file(task,filename,mode="a"):
+    out_file = open(filename,mode)
     out_file.write(task.name+"\n")
     err = [ [ 0 for i in range(4) ] for j in range(4) ]
     for i in range(4):

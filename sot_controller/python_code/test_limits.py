@@ -2,7 +2,6 @@ from startup import *
 
 rospy.init_node('tf_reem')
 listener = tf.TransformListener()
-filename = "/tmp/out_from_py.txt"
 
 def transformation(frame_1,frame_2):
     now = rospy.Time.now()
@@ -35,13 +34,6 @@ def visDef(frame_1,frame_2,xyz):
     goal[0:3,0:3] = goal_r.transpose()
     return goal
 
-filename = "/tmp/out_from_py.txt"
-out_file = open(filename,"w")
-
-jointLimits_flag = 1
-contact_waist_flag = 1
-gaze_flag = 1
-
 quat = numpy.array([-0.377,-0.06,-0.142,0.91])
 xyz = numpy.array([0.4,-0.384,1.25])
 
@@ -58,28 +50,26 @@ taskJL.referenceSup.value = robot.dynamic.upperJl.value
 taskJL.dt.value = 0.001
 taskJL.selec.value = toFlags(range(6,robot.dimension))
 
-if jointLimits_flag:
-    push(taskJL)
-
 taskWT = MetaTaskKine6d('wt',robot.dynamic,'waist','waist')
 taskWT.feature.frame('desired')
 taskWT.gain.setConstant(1000)
 taskWT.feature.position.value
 
-if contact_waist_flag:
-    solver.addContact(taskWT)
+push(taskJL)
 
-if gaze_flag:
-    push(taskGAZE)
-    x0 = taskGAZE.feature.position.value[0][3]
-    y0 = taskGAZE.feature.position.value[1][3]
-    z0 = taskGAZE.feature.position.value[2][3]
-    dx = 0.0
-    dy = -10
-    dz = 0.0
-    xyz = numpy.array([x0+dx,y0+dy,z0+dz])
-    goal_gz = visDef("/torso_base_link","/head_2_link",xyz)
-    gotoNd(taskGAZE,goal_gz,'111000',1)
+solver.addContact(taskWT)
+
+push(taskGAZE)
+
+x0 = taskGAZE.feature.position.value[0][3]
+y0 = taskGAZE.feature.position.value[1][3]
+z0 = taskGAZE.feature.position.value[2][3]
+dx = 0.0
+dy = -10
+dz = 0.0
+xyz = numpy.array([x0+dx,y0+dy,z0+dz])
+goal_gz = visDef("/torso_base_link","/head_2_link",xyz)
+gotoNd(taskGAZE,goal_gz,'111000',1)
 
 
 
