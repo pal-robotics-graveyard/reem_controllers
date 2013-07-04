@@ -7,3 +7,4 @@ lib
 *.pyc
 .pydevproject
 .project
+.settings
