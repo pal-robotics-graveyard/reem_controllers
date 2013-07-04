@@ -1,12 +1,8 @@
-from dynamic_graph.sot.reem.startup import *
-import roslib; roslib.load_manifest('sot_controller')
-sys.argv = "example_orientation"
-import tf
-import rospy
+from startup import *
 
 rospy.init_node('tf_reem')
-
 listener = tf.TransformListener()
+filename = "/tmp/out_from_py.txt"
 
 def transformation(frame_1,frame_2):
     now = rospy.Time.now()
@@ -38,9 +34,6 @@ def visDef(frame_1,frame_2,xyz):
     goal_r = goal_r * R_comp.transpose()
     goal[0:3,0:3] = goal_r.transpose()
     return goal
-
-filename = "/tmp/out_from_py.txt"
-out_file = open(filename,"w")
 
 jointLimits_flag = 1
 contact_waist_flag = 1
@@ -98,8 +91,6 @@ if rw_flag:
 if gaze_flag:
     push(taskGAZE)
 
-time.sleep(5)
-
 if rw_flag:
     gotoNd(taskRW,goal_rw,'111111',100)
 
@@ -109,26 +100,11 @@ if gaze_flag:
 time.sleep(15)
 
 if rw_flag:
-    out_file.write("Error taskGAZE\n")
-    err = [ [ 0 for i in range(4) ] for j in range(4) ]
-    for i in range(4):
-        for j in range(4):
-            err[i][j] = taskGAZE.featureDes.position.value[i][j] - taskGAZE.feature.position.value[i][j]
-        out_file.write(str(err[i])+"\n")
-if gaze_flag:
-    out_file.write("Error taskRW\n")
-    err = [ [ 0 for i in range(4) ] for j in range(4) ]
-    for i in range(4):
-        for j in range(4):
-            err[i][j] = taskRW.featureDes.position.value[i][j] - taskRW.feature.position.value[i][j]
-            out_file.write(str(err[i])+"\n")
-if contact_waist_flag:
-    out_file.write("Error taskWT\n")
-    err = [ [ 0 for i in range(4) ] for j in range(4) ]
-    for i in range(4):
-        for j in range(4):
-            err[i][j] = taskWT.featureDes.position.value[i][j] - taskWT.feature.position.value[i][j]
-            out_file.write(str(err[i])+"\n")
+    err2file(taskRW,filename)
+  
+  
+#Unused code:
+"""      
 count = 0
 for elem in robot.device.state.value:
     u = robot.dynamic.upperJl.value[count]
@@ -138,8 +114,7 @@ for elem in robot.device.state.value:
         out_file.write("Rank: " + str(count) +  " state value: " + str(elem) + " lower bound: " + str(l) + "\n")
     if (elem > u):
         out_file.write("Rank: " + str(count) +  " state value: " + str(elem) + " upper bound: " + str(u) + "\n")
-
-out_file.close()
+"""
 
 
 

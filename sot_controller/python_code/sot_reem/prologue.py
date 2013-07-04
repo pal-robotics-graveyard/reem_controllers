@@ -18,9 +18,9 @@ print("sot_reem")
 print("Compiled for robot REEM.")
 
 from dynamic_graph import plug
-from dynamic_graph.sot.reem.robot import Reem
+from robot import Reem
 from dynamic_graph.entity import PyEntityFactoryClass
-from dynamic_graph.sot.dynamics.solver import Solver
+#from dynamic_graph.sot.dynamics.solver import Solver
 
 # Create the OpenHRP enabled device.
 # This entity behaves exactly like robotsimu except:

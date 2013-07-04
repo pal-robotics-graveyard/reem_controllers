@@ -62,11 +62,12 @@ bool SotReemController::init(hardware_interface::PositionJointInterface *robot, 
                    "    path.append(p)", interpreter_);
         runPython (aof, "path.extend(sys.path)", interpreter_);
         runPython (aof, "sys.path = path", interpreter_);
+        runPython (aof, "sys.argv = 'reem'", interpreter_);
         //runPython(aof,"import roslib; roslib.load_manifest('sot_controller')", interpreter_);
         //runPython(aof,"import tf", interpreter_);
         //int nDofs = actuatedJointsNamesList.size();
         //runPython (aof,"initConf = (0.,) * "+static_cast<std::ostringstream*>( &(std::ostringstream() << nDofs) )->str(),interpreter_);
-        runPython(aof,"from dynamic_graph.sot.reem.prologue import robot, solver", interpreter_);
+        runPython(aof,"import startup", interpreter_);
         aof.close();
     }
 

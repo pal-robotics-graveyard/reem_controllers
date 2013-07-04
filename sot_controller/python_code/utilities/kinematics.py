@@ -1,22 +1,6 @@
-from dynamic_graph.sot.dyninv import *
-from dynamic_graph.sot.core.meta_task_6d import MetaTask6d,toFlags
-from dynamic_graph.sot.core.meta_tasks import setGain
-from dynamic_graph.sot.core.meta_tasks_kine import *
-from dynamic_graph.sot.core.meta_task_posture import MetaTaskKinePosture
-from dynamic_graph.sot.core.matrix_util import matrixToTuple, vectorToTuple,rotate, matrixToRPY
-from dynamic_graph.sot.reem.prologue import robot, solver
-from dynamic_graph.sot.core.meta_task_visual_point import MetaTaskVisualPoint
-
 import numpy
-import time
 import math
 
-def push(task):
-    if isinstance(task,str): taskName=task
-    elif "task" in task.__dict__:  taskName=task.task.name
-    else: taskName=task.name
-    solver.push(taskName)
-    
 def mat2rpy(m):
     rpy = numpy.zeros(3)
     rpy[0] = math.atan2(m[1,0],m[0,0])
@@ -51,3 +35,4 @@ def roty(angle):
 def rotz(angle):
     m = numpy.matrix([[numpy.cos(angle),-numpy.sin(angle),0],[numpy.sin(angle),numpy.cos(angle),0],[0,0,1]])
     return m
+

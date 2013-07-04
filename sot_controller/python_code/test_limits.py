@@ -1,12 +1,8 @@
-from dynamic_graph.sot.reem.startup import *
-import roslib; roslib.load_manifest('sot_controller')
-sys.argv = "example_orientation"
-import tf
-import rospy
+from startup import *
 
 rospy.init_node('tf_reem')
-
 listener = tf.TransformListener()
+filename = "/tmp/out_from_py.txt"
 
 def transformation(frame_1,frame_2):
     now = rospy.Time.now()
@@ -73,8 +69,6 @@ taskWT.feature.position.value
 if contact_waist_flag:
     solver.addContact(taskWT)
 
-time.sleep(5)
-
 if gaze_flag:
     push(taskGAZE)
     x0 = taskGAZE.feature.position.value[0][3]
@@ -87,37 +81,7 @@ if gaze_flag:
     goal_gz = visDef("/torso_base_link","/head_2_link",xyz)
     gotoNd(taskGAZE,goal_gz,'111000',1)
 
-time.sleep(15)
 
-count = 0
-for elem in robot.device.state.value:
-    u = robot.dynamic.upperJl.value[count]
-    l = robot.dynamic.lowerJl.value[count]
-    count = count + 1
-    if (elem < l):
-        #print ("Rank: " + str(count) +  " state value: " + str(elem) + " lower bound: " + str(l))
-        out_file.write("Rank: " + str(count) +  " state value: " + str(elem) + " lower bound: " + str(l) + "\n")
-    if (elem > u):
-        #print ("Rank: " + str(count) +  " state value: " + str(elem) + " upper bound: " + str(u))
-        out_file.write("Rank: " + str(count) +  " state value: " + str(elem) + " upper bound: " + str(u) + "\n")
-
-if gaze_flag:
-    out_file.write("Error taskGAZE\n")
-    err = [ [ 0 for i in range(4) ] for j in range(4) ]
-    for i in range(0,4):
-        for j in range(0,4):
-            err[i][j] = taskGAZE.featureDes.position.value[i][j] - taskGAZE.feature.position.value[i][j]
-        out_file.write(str(err[i])+"\n")
-
-if contact_waist_flag:
-    out_file.write("Error taskWT\n")
-    err = [ [ 0 for i in range(4) ] for j in range(4) ]
-    for i in range(0,4):
-        for j in range(0,4):
-            err[i][j] = taskWT.featureDes.position.value[i][j] - taskWT.feature.position.value[i][j]
-        out_file.write(str(err[i])+"\n")
-
-out_file.close()
 
 
 

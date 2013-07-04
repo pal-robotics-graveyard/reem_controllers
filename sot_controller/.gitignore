@@ -4,3 +4,6 @@ cmake
 lib
 *.user
 *~
+*.pyc
+.pydevproject
+.project
