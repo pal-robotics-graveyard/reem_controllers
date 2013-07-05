@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright 2013, Gennaro Raiola, PAL Robotics, S.L.
 # Copyright 2011, Florent Lamiraux, Thomas Moulard, JRL, CNRS/AIST
 #
 # This file is part of dynamic-graph.
@@ -20,13 +21,7 @@ print("Compiled for robot REEM.")
 from dynamic_graph import plug
 from robot import Reem
 from dynamic_graph.entity import PyEntityFactoryClass
-#from dynamic_graph.sot.dynamics.solver import Solver
 
-# Create the OpenHRP enabled device.
-# This entity behaves exactly like robotsimu except:
-# 1. it does not provide the increment method
-# 2. it forwards the robot control to the OpenHRP
-#    controller.
 Device = PyEntityFactoryClass('SotReemDevice')
 
 robot = Reem(name = 'robot', device = Device('robot_device'))
@@ -45,18 +40,7 @@ robot.device.control.unplug()
 plug(solver.control,robot.device.control)
 plug(robot.device.state,robot.dynamic.position)
 
-#solver = Solver(robot)
-
 print("Prologue ran successfully.")
 
 # Make sure only robot and solver are visible from the outside.
 __all__ = ["robot", "solver"]
-
-####################################
-#        --- IMPORTANT ---         #
-#                                  #
-# THIS FILE MUST NEVER BE CHANGED. #
-# TO RUN YOUR EXPERIMENT, PLEASE   #
-# WRITE A SEPARATE PYTHON MODULE   #
-# AND LAUNCH IT USING dg-remote!   #
-####################################

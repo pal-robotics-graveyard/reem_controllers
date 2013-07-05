@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright 2013, Gennaro Raiola, PAL Robotics, S.L.
 # Copyright 2011, Florent Lamiraux, Thomas Moulard, JRL, CNRS/AIST
 #
 # This file is part of dynamic-graph.
