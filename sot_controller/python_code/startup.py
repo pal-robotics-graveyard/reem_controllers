@@ -2,7 +2,7 @@
 from sot_reem.prologue import robot, solver
 
 # Useful modules to interact with the stack of tasks
-# They should be common between the examples...
+# They should be shared between the examples...
 from dynamic_graph.sot.dyninv import *
 from dynamic_graph.sot.core.meta_task_6d import MetaTask6d,toFlags
 from dynamic_graph.sot.core.meta_tasks import setGain

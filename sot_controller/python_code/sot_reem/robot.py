@@ -30,18 +30,13 @@ class Reem(AbstractHumanoidRobot):
         'device': ['zmp', 'control', 'state']
         }
 
-    def __init__(self, name, device = None, tracer = None, halfSitting = None):
+    def __init__(self, name, device = None, tracer = None):
         AbstractHumanoidRobot.__init__ (self, name, tracer)
         self.device = device
         self.dynamic = RosRobotModel("{0}_dynamic".format(name))
         self.dynamic.loadFromParameterServer()
-
+        self.halfSitting = self.dynamic.curConf()
         self.dimension = self.dynamic.getDimension()
-        if halfSitting:
-        		self.halfSitting = halfSitting
-        else:
-        		self.halfSitting = (0.,) * self.dimension #???
-        print(self.halfSitting)
         self.initializeRobot()
 
 __all__ = ["Reem"]

@@ -43,7 +43,7 @@ lw_flag = 0
 com_flag = 1
 
 quat = numpy.array([-0.377,-0.06,-0.142,0.91])
-xyz = numpy.array([0.35,-0.4,1.25])
+xyz = numpy.array([0.35,-0.3, 0.9])
 goal_rw = goalDef("/torso_base_link","/arm_right_tool_link",xyz,quat)
 goal_lw = goalDef("/torso_base_link","/arm_left_tool_link",xyz,quat)
 goal_gz = visDef("/torso_base_link","/head_2_link",xyz)
@@ -110,6 +110,17 @@ time.sleep(15)
 err2file(taskRW,filename,"w")
 err2file(taskLW,filename,"a")
 err2file(taskGAZE,filename,"a")
+  
+out_file = open("/tmp/joints_limits","w")
+count = 0
+for elem in robot.device.state.value:
+    u = robot.dynamic.upperJl.value[count]
+    l = robot.dynamic.lowerJl.value[count]
+    count = count + 1
+    out_file.write("Rank: " + str(count) +  " state value: " + str(elem) + " lower bound: " + str(l) + "\n")
+    out_file.write("Rank: " + str(count) +  " state value: " + str(elem) + " upper bound: " + str(u) + "\n")  
+
+out_file.close()  
   
 #Unused code:
 """      

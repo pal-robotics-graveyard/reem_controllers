@@ -1,3 +1,42 @@
+/*
+ * Software License Agreement (Modified BSD License)
+ *
+ *  Copyright (c) 2013, PAL Robotics, S.L.
+ *  Copyright (c) 2008, Willow Garage, Inc.
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of PAL Robotics, S.L. nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/** \author Gennaro Raiola
+ *   inspired on the sot_pr2 class written by Thomas Moulard, available here https://github.com/laas/sot_pr2.
+ */
+
 # include <sot_controller/sot_reem_controller.h>
 # include <pluginlib/class_list_macros.h>
 
@@ -42,17 +81,14 @@ SotReemController::~SotReemController() {
 bool SotReemController::init(hardware_interface::PositionJointInterface *robot, ros::NodeHandle& root_nh, ros::NodeHandle& controller_nh)
 {
 
+    std::ofstream aof(out_python_file.c_str());
+
     // Call prologue
     try
     {
 
-        std::ofstream aof(out_python_file.c_str());
-
-        //runPython (aof,"from IPython import embed", interpreter_);
-        //runPython (aof,"embed()", interpreter_);
-        //runPython (aof, "import sys, os", interpreter_);
+        //runPython (aof, joints_.size()"import sys, os", interpreter_);
         //runPython (aof, "pythonpath = '" + pythonpath + "'", interpreter_);
-
         runPython (aof, "import sys, os", interpreter_);
         runPython (aof, "pythonpath = os.environ['PYTHONPATH']", interpreter_);
         runPython (aof, "path = []", interpreter_);
@@ -65,10 +101,7 @@ bool SotReemController::init(hardware_interface::PositionJointInterface *robot, 
         runPython (aof, "sys.argv = 'reem'", interpreter_);
         //runPython(aof,"import roslib; roslib.load_manifest('sot_controller')", interpreter_);
         //runPython(aof,"import tf", interpreter_);
-        //int nDofs = actuatedJointsNamesList.size();
-        //runPython (aof,"initConf = (0.,) * "+static_cast<std::ostringstream*>( &(std::ostringstream() << nDofs) )->str(),interpreter_);
         runPython(aof,"import startup", interpreter_);
-        aof.close();
     }
 
     catch(const std::exception& e)
@@ -131,6 +164,13 @@ bool SotReemController::init(hardware_interface::PositionJointInterface *robot, 
 
     // Member list of joint handles is updated only once all resources have been claimed
     joints_ = joints_tmp;
+
+    // Set the initial conditions, for now hardcoded...
+    //runPython (aof,"initConf = (0.,) * "+static_cast<std::ostringstream*>( &(std::ostringstream() << joints_.size()) )->str(),interpreter_);
+    //runPython (aof,"from IPython import embed", interpreter_);
+    //runPython (aof,"embed()", interpreter_);
+
+    aof.close();
 
     // Call init inside sot_reem_device
     device_->init();
