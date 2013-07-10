@@ -37,8 +37,9 @@ def visDef(frame_1,frame_2,xyz):
 quat = numpy.array([-0.377,-0.06,-0.142,0.91])
 xyz = numpy.array([0.4,-0.384,1.25])
 
-taskGAZE = MetaTaskKine6d('gz',robot.dynamic,'gaze','gaze')
-taskGAZE.feature.frame('current')
+taskGAZE = MetaTaskVisualPoint('gz',robot.dynamic,'gaze','gaze')
+taskGAZE.gain.setConstant(1000)
+taskGAZE.featureDes.xy.value = (0,0)
 
 robot.dynamic.upperJl.recompute(0)
 robot.dynamic.lowerJl.recompute(0)
@@ -61,15 +62,9 @@ solver.addContact(taskWT)
 
 push(taskGAZE)
 
-x0 = taskGAZE.feature.position.value[0][3]
-y0 = taskGAZE.feature.position.value[1][3]
-z0 = taskGAZE.feature.position.value[2][3]
-dx = 0.0
-dy = -10
-dz = 0.0
-xyz = numpy.array([x0+dx,y0+dy,z0+dz])
-goal_gz = visDef("/torso_base_link","/head_2_link",xyz)
-gotoNd(taskGAZE,goal_gz,'111000',1)
+xyz = numpy.array([0.0,-10,0.0])
+
+taskGAZE.goto3D((xyz[0],xyz[1],xyz[2]))
 
 
 

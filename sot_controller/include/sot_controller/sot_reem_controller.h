@@ -40,7 +40,6 @@
 # ifndef SOT_REEM_CONTROLLER_H
 # define SOT_REEM_CONTROLLER_H
 
-# include <forward_command_controller/forward_command_controller.h>
 # include <dynamic_graph_bridge/ros_interpreter.hh>
 # include "sot_controller/sot_reem_device.h"
 
@@ -53,24 +52,44 @@
 
 namespace sot_reem_controller
 {
-  class SotReemController : public controller_interface::Controller<hardware_interface::PositionJointInterface>
+  class SotReemController : public controller_interface::Controller<hardware_interface::PositionJointInterface>,
+          public dynamicgraph::sot::AbstractSotExternalInterface
   {
 
   private:
-    /// Embedded python interpreter accessible via a ROS service.
-    dynamicgraph::Interpreter interpreter_;
-    /// Pointer to Entity StackOfTasks
-    SotReemDevice* device_;
+
+    /// Device entity for the StackOfTasks
+    SotReemDevice device_;
 
   public:
+
+    static const std::string LOG_PYTHON;
+
+    /// Embedded python interpreter accessible via Corba
+    boost::shared_ptr<dynamicgraph::Interpreter> interpreter_;
+
     SotReemController();
     ~SotReemController();
 
+    /// Derived from controller_interface
     bool init(hardware_interface::PositionJointInterface *robot, ros::NodeHandle& root_nh, ros::NodeHandle& controller_nh);
     void starting(const ros::Time& time);
     void update(const ros::Time& time, const ros::Duration& period);
 
+    /// Derived from AbstractSotExternalInterface
+    void setupSetSensors(std::map<std::string,dynamicgraph::sot::SensorValues> &sensorsIn) {}
+    void nominalSetSensors(std::map<std::string,dynamicgraph::sot::SensorValues> &sensorsIn) {}
+    void cleanupSetSensors(std::map<std::string,dynamicgraph::sot::SensorValues> &sensorsIn) {}
+    void getControl(std::map<std::string,dynamicgraph::sot::ControlValues> &) {}
+
     joints_t joints_;
+
+
+  protected:
+
+    void runPython(std::ostream& file, const std::string& command, dynamicgraph::Interpreter& interpreter);
+
+    virtual void startupPython();
 
   };
 }

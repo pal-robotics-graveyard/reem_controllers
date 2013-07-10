@@ -41,8 +41,6 @@
 
 #include <dynamic-graph/factory.h>
 #include <dynamic-graph/command-setter.h>
-#include <dynamic-graph/debug.h>
-#include <sot/core/debug.hh>
 #include <sot/core/exception-factory.hh>
 #include <dynamic-graph/all-commands.h>
 

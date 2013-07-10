@@ -5,6 +5,12 @@ def push(task):
     elif "task" in task.__dict__:  taskName=task.task.name
     else: taskName=task.name
     solver.push(taskName)
+
+def pop(task):
+    if isinstance(task,str): taskName=task
+    elif "task" in task.__dict__:  taskName=task.task.name
+    else: taskName=task.name
+    if taskName in solver.toList(): solver.rm(taskName)
     
 def err2file(task,filename,mode="a"):
     out_file = open(filename,mode)

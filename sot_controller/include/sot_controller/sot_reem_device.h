@@ -42,6 +42,10 @@
 
 # include <sot/core/device.hh>
 # include <forward_command_controller/forward_command_controller.h>
+# include <sot/core/abstract-sot-external-interface.hh>
+# include <dynamic-graph/debug.h>
+# include <sot/core/debug.hh>
+
 
 /**
  * \brief Interface controller for the stack of tasks. It is wrapped by sot_reem_controller.
@@ -73,6 +77,12 @@ public:
 
     /// \brief Called at each control loop.
     void update(const ros::Time& time, const ros::Duration& period, joints_t& joints_);
+
+    void setSensors(std::map<std::string,dynamicgraph::sot::SensorValues> &sensorsIn);
+    void setupSetSensors(std::map<std::string,dynamicgraph::sot::SensorValues> &sensorsIn);
+    void nominalSetSensors(std::map<std::string,dynamicgraph::sot::SensorValues> &sensorsIn);
+    void cleanupSetSensors(std::map<std::string,dynamicgraph::sot::SensorValues> &sensorsIn);
+    void getControl(std::map<std::string,dynamicgraph::sot::ControlValues> &anglesOut);
 
     /// \}
 

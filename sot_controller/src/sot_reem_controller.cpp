@@ -45,32 +45,46 @@
 # include <dynamic_graph_bridge/ros_init.hh>
 # include <dynamic_graph_bridge/RunCommand.h>
 
-const std::string out_python_file("/tmp/sot_reem_controller.out");
+#include <boost/thread/thread.hpp>
+#include <boost/thread/condition.hpp>
 
 namespace sot_reem_controller {
 
-static void
-runPython(std::ostream& file, const std::string& command, dynamicgraph::Interpreter& interpreter)
+const std::string SotReemController::LOG_PYTHON="/tmp/sot_reem_controller.out";
+
+boost::condition_variable cond;
+boost::mutex mut;
+bool data_ready;
+
+void workThread(SotReemController *aSoTReem)
 {
-    file << ">>> " << command << std::endl;
-    std::string lerr(""),lout(""),lres("");
-    interpreter.runCommand(command,lres,lout,lerr);
-    if (lres != "None")
-    {
-        if (lres=="<NULL>")
-        {
-            file << lout << std::endl;
-            file << "------" << std::endl;
-            file << lerr << std::endl;
-        }
-        else
-            file << lres << std::endl;
-    }
+
+  ros::NodeHandle rosNodeInterpreter;
+  dynamicgraph::Interpreter aLocalInterpreter(dynamicgraph::rosInit (false));
+
+  aSoTReem->interpreter_ = boost::make_shared<dynamicgraph::Interpreter>(aLocalInterpreter);
+  std::cout << "Going through the thread." << std::endl;
+  {
+    boost::lock_guard<boost::mutex> lock(mut);
+    data_ready=true;
+  }
+  cond.notify_all();
+  ros::waitForShutdown();
 }
 
-SotReemController::SotReemController():
-    interpreter_ (dynamicgraph::rosInit (false)),
-    device_ (new SotReemDevice("robot_device")) {}
+SotReemController::SotReemController(): // excepted interface (std::string RobotName)
+    device_ ("robot_device") {
+
+    std::cout << "Going through SotReemController." << std::endl;
+    boost::thread thr(workThread,this);
+    sotDEBUG(25) << __FILE__ << ":"
+             << __FUNCTION__ <<"(#"
+             << __LINE__ << " )" << std::endl;
+
+    boost::unique_lock<boost::mutex> lock(mut);
+    cond.wait(lock);
+
+}
 
 SotReemController::~SotReemController() {
     for (int i = 0; i < joints_.size(); ++i){
@@ -81,40 +95,16 @@ SotReemController::~SotReemController() {
 bool SotReemController::init(hardware_interface::PositionJointInterface *robot, ros::NodeHandle& root_nh, ros::NodeHandle& controller_nh)
 {
 
-    std::ofstream aof(out_python_file.c_str());
-
-    // Call prologue
     try
     {
-
-        //runPython (aof, joints_.size()"import sys, os", interpreter_);
-        //runPython (aof, "pythonpath = '" + pythonpath + "'", interpreter_);
-        runPython (aof, "import sys, os", interpreter_);
-        runPython (aof, "pythonpath = os.environ['PYTHONPATH']", interpreter_);
-        runPython (aof, "path = []", interpreter_);
-        runPython (aof,
-                   "for p in pythonpath.split(':'):\n"
-                   "  if p not in sys.path:\n"
-                   "    path.append(p)", interpreter_);
-        runPython (aof, "path.extend(sys.path)", interpreter_);
-        runPython (aof, "sys.path = path", interpreter_);
-        runPython (aof, "sys.argv = 'reem'", interpreter_);
-        //runPython(aof,"import roslib; roslib.load_manifest('sot_controller')", interpreter_);
-        //runPython(aof,"import tf", interpreter_);
-        runPython(aof,"import startup", interpreter_);
+        startupPython();
     }
-
-    catch(const std::exception& e)
+    catch(const std::runtime_error& e)
     {
-        ROS_ERROR_STREAM("failed to initialize controller: " << e.what());
+        ROS_ERROR_STREAM(e.what());
         return false;
     }
-    catch(...)
-    {
-        ROS_ERROR_STREAM
-                ("unknown exception catched during controller initialization");
-        return false;
-    }
+    //dynamicgraph::rosInit (true);
 
     // Get joint names from the parameter server
     using namespace XmlRpc;
@@ -165,15 +155,8 @@ bool SotReemController::init(hardware_interface::PositionJointInterface *robot, 
     // Member list of joint handles is updated only once all resources have been claimed
     joints_ = joints_tmp;
 
-    // Set the initial conditions, for now hardcoded...
-    //runPython (aof,"initConf = (0.,) * "+static_cast<std::ostringstream*>( &(std::ostringstream() << joints_.size()) )->str(),interpreter_);
-    //runPython (aof,"from IPython import embed", interpreter_);
-    //runPython (aof,"embed()", interpreter_);
-
-    aof.close();
-
     // Call init inside sot_reem_device
-    device_->init();
+    device_.init();
 
     return true;
 }
@@ -181,7 +164,7 @@ bool SotReemController::init(hardware_interface::PositionJointInterface *robot, 
 void SotReemController::starting(const ros::Time& time) {
 
     try{
-        device_->starting(time,joints_);
+        device_.starting(time,joints_);
     }
     catch(const std::range_error& e)
     {
@@ -191,9 +174,51 @@ void SotReemController::starting(const ros::Time& time) {
 
 void SotReemController::update(const ros::Time& time, const ros::Duration& period) {
 
-    device_->update(time,period,joints_);
+    device_.update(time,period,joints_);
 
 }
+
+void SotReemController::runPython(std::ostream& file, const std::string& command, dynamicgraph::Interpreter& interpreter)
+
+{
+    file << ">>> " << command << std::endl;
+    std::string lerr(""),lout(""),lres("");
+    interpreter.runCommand(command,lres,lout,lerr);
+    if (lres != "None")
+    {
+        if (lres=="<NULL>")
+        {
+            file << lout << std::endl;
+            file << "------" << std::endl;
+            file << lerr << std::endl;
+
+            std::string err("Exception catched during sot controller initialization, please check the log file: " + LOG_PYTHON);
+            throw std::runtime_error(err);
+        }
+        else
+            file << lres << std::endl;
+    }
+}
+
+void SotReemController::startupPython()
+{
+    std::ofstream aof(LOG_PYTHON.c_str());
+
+    runPython (aof, "import sys, os", *interpreter_);
+    runPython (aof, "pythonpath = os.environ['PYTHONPATH']", *interpreter_);
+    runPython (aof, "path = []", *interpreter_);
+    runPython (aof,
+           "for p in pythonpath.split(':'):\n"
+           "  if p not in sys.path:\n"
+           "    path.append(p)", *interpreter_);
+    runPython (aof, "path.extend(sys.path)", *interpreter_);
+    runPython (aof, "sys.path = path", *interpreter_);
+    runPython (aof, "sys.argv = 'reem'", *interpreter_);
+    runPython(aof, "import startup", *interpreter_);
+
+    aof.close();
+}
+
 
 
 }// namespace
