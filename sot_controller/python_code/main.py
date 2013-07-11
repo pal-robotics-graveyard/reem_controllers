@@ -19,7 +19,7 @@ xyz = numpy.array([0.35,-0.3,1.25])
 goal_rw = goalDef(xyz,quat)
 goal_lw = goalDef(xyz,quat)
 
-taskRW = MetaTaskKine6d('rw',robot.dynamic,'right-wrist','right_arm')
+taskRW = MetaTaskKine6d('rw',robot.dynamic,'right-wrist','right-wrist')
 taskRW.feature.frame('current')
 
 taskLW = MetaTaskKine6d('lw',robot.dynamic,'left-wrist','left-wrist')
