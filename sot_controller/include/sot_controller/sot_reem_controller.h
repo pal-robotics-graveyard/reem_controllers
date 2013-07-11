@@ -61,15 +61,19 @@ namespace sot_reem_controller
     dynamicgraph::Interpreter interpreter_;
     /// Pointer to Entity StackOfTasks
     SotReemDevice* device_;
+    /// Path to the log file
 
   public:
     SotReemController();
     ~SotReemController();
 
+    void runPython(std::ostream& file, const std::string& command, dynamicgraph::Interpreter& interpreter);
+
     bool init(hardware_interface::PositionJointInterface *robot, ros::NodeHandle& root_nh, ros::NodeHandle& controller_nh);
     void starting(const ros::Time& time);
     void update(const ros::Time& time, const ros::Duration& period);
 
+    static const std::string LOG_PYTHON;
     joints_t joints_;
 
   };

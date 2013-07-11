@@ -45,11 +45,21 @@
 # include <dynamic_graph_bridge/ros_init.hh>
 # include <dynamic_graph_bridge/RunCommand.h>
 
-const std::string out_python_file("/tmp/sot_reem_controller.out");
-
 namespace sot_reem_controller {
 
-static void runPython(std::ostream& file, const std::string& command, dynamicgraph::Interpreter& interpreter)
+const std::string SotReemController::LOG_PYTHON="/tmp/sot_reem_controller.out";
+
+SotReemController::SotReemController():
+    interpreter_ (dynamicgraph::rosInit (false)),
+    device_ (new SotReemDevice("robot_device")) {}
+
+SotReemController::~SotReemController() {
+    for (int i = 0; i < joints_.size(); ++i){
+        ROS_INFO("Current joint_%d position: %f64\n",i+1,joints_[i].getPosition());
+    }
+}
+
+void SotReemController::runPython(std::ostream& file, const std::string& command, dynamicgraph::Interpreter& interpreter)
 {
     file << ">>> " << command << std::endl;
     std::string lerr(""),lout(""),lres("");
@@ -62,7 +72,7 @@ static void runPython(std::ostream& file, const std::string& command, dynamicgra
             file << "------" << std::endl;
             file << lerr << std::endl;
 
-            std::string err("Exception catched during sot controller initialization, please check the log file: " + out_python_file);
+            std::string err("Exception catched during sot controller initialization, please check the log file: " + LOG_PYTHON);
             throw std::runtime_error(err);
         }
         else
@@ -70,22 +80,12 @@ static void runPython(std::ostream& file, const std::string& command, dynamicgra
     }
 }
 
-SotReemController::SotReemController():
-    interpreter_ (dynamicgraph::rosInit (false)),
-    device_ (new SotReemDevice("robot_device")) {}
-
-SotReemController::~SotReemController() {
-    for (int i = 0; i < joints_.size(); ++i){
-        ROS_INFO("Current joint_%d position: %f64\n",i+1,joints_[i].getPosition());
-    }
-}
-
 bool SotReemController::init(hardware_interface::PositionJointInterface *robot, ros::NodeHandle& root_nh, ros::NodeHandle& controller_nh)
 {
 
-    std::ofstream aof(out_python_file.c_str());
+    std::ofstream aof(LOG_PYTHON.c_str());
 
-    // Call prologue
+    // Call startup
     try
     {
         runPython (aof, "import sys, os", interpreter_);
@@ -155,11 +155,6 @@ bool SotReemController::init(hardware_interface::PositionJointInterface *robot, 
 
     // Member list of joint handles is updated only once all resources have been claimed
     joints_ = joints_tmp;
-
-    // Set the initial conditions, for now hardcoded...
-    //runPython (aof,"initConf = (0.,) * "+static_cast<std::ostringstream*>( &(std::ostringstream() << joints_.size()) )->str(),interpreter_);
-    //runPython (aof,"from IPython import embed", interpreter_);
-    //runPython (aof,"embed()", interpreter_);
 
     aof.close();
 
