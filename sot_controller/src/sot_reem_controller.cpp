@@ -49,8 +49,7 @@ const std::string out_python_file("/tmp/sot_reem_controller.out");
 
 namespace sot_reem_controller {
 
-static void
-runPython(std::ostream& file, const std::string& command, dynamicgraph::Interpreter& interpreter)
+static void runPython(std::ostream& file, const std::string& command, dynamicgraph::Interpreter& interpreter)
 {
     file << ">>> " << command << std::endl;
     std::string lerr(""),lout(""),lres("");
@@ -62,6 +61,9 @@ runPython(std::ostream& file, const std::string& command, dynamicgraph::Interpre
             file << lout << std::endl;
             file << "------" << std::endl;
             file << lerr << std::endl;
+
+            std::string err("Exception catched during sot controller initialization, please check the log file: " + out_python_file);
+            throw std::runtime_error(err);
         }
         else
             file << lres << std::endl;
@@ -86,9 +88,6 @@ bool SotReemController::init(hardware_interface::PositionJointInterface *robot, 
     // Call prologue
     try
     {
-
-        //runPython (aof, joints_.size()"import sys, os", interpreter_);
-        //runPython (aof, "pythonpath = '" + pythonpath + "'", interpreter_);
         runPython (aof, "import sys, os", interpreter_);
         runPython (aof, "pythonpath = os.environ['PYTHONPATH']", interpreter_);
         runPython (aof, "path = []", interpreter_);
@@ -99,20 +98,12 @@ bool SotReemController::init(hardware_interface::PositionJointInterface *robot, 
         runPython (aof, "path.extend(sys.path)", interpreter_);
         runPython (aof, "sys.path = path", interpreter_);
         runPython (aof, "sys.argv = 'reem'", interpreter_);
-        //runPython(aof,"import roslib; roslib.load_manifest('sot_controller')", interpreter_);
-        //runPython(aof,"import tf", interpreter_);
         runPython(aof,"import startup", interpreter_);
     }
 
-    catch(const std::exception& e)
+    catch(const std::runtime_error& e)
     {
-        ROS_ERROR_STREAM("failed to initialize controller: " << e.what());
-        return false;
-    }
-    catch(...)
-    {
-        ROS_ERROR_STREAM
-                ("unknown exception catched during controller initialization");
+        ROS_ERROR_STREAM(e.what());
         return false;
     }
 
