@@ -20,6 +20,6 @@ import time
 import numpy
 
 # Ros modules
-import roslib; roslib.load_manifest('sot_controller')
-import tf
-import rospy
+#import roslib; roslib.load_manifest('sot_controller')
+#import tf
+#import rospy
