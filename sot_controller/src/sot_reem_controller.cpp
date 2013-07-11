@@ -59,8 +59,7 @@ bool data_ready;
 void workThread(SotReemController *aSoTReem)
 {
 
-  ros::NodeHandle rosNodeInterpreter;
-  dynamicgraph::Interpreter aLocalInterpreter(dynamicgraph::rosInit (false));
+  dynamicgraph::Interpreter aLocalInterpreter(dynamicgraph::rosInit (false,true));
 
   aSoTReem->interpreter_ = boost::make_shared<dynamicgraph::Interpreter>(aLocalInterpreter);
   std::cout << "Going through the thread." << std::endl;
