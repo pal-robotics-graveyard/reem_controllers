@@ -50,7 +50,7 @@ namespace sot_reem_controller {
 const std::string SotReemController::LOG_PYTHON="/tmp/sot_reem_controller.out";
 
 SotReemController::SotReemController():
-    interpreter_ (dynamicgraph::rosInit (false)),
+    interpreter_ (),
     device_ (new SotReemDevice("robot_device")) {}
 
 SotReemController::~SotReemController() {
@@ -85,20 +85,22 @@ bool SotReemController::init(hardware_interface::PositionJointInterface *robot, 
 
     std::ofstream aof(LOG_PYTHON.c_str());
 
+    interpreter_.reset(new dynamicgraph::Interpreter(controller_nh) );
+
     // Call startup
     try
     {
-        runPython (aof, "import sys, os", interpreter_);
-        runPython (aof, "pythonpath = os.environ['PYTHONPATH']", interpreter_);
-        runPython (aof, "path = []", interpreter_);
+        runPython (aof, "import sys, os", *interpreter_);
+        runPython (aof, "pythonpath = os.environ['PYTHONPATH']", *interpreter_);
+        runPython (aof, "path = []", *interpreter_);
         runPython (aof,
                    "for p in pythonpath.split(':'):\n"
                    "  if p not in sys.path:\n"
-                   "    path.append(p)", interpreter_);
-        runPython (aof, "path.extend(sys.path)", interpreter_);
-        runPython (aof, "sys.path = path", interpreter_);
-        runPython (aof, "sys.argv = 'reem'", interpreter_);
-        runPython(aof,"import startup", interpreter_);
+                   "    path.append(p)", *interpreter_);
+        runPython (aof, "path.extend(sys.path)", *interpreter_);
+        runPython (aof, "sys.path = path", *interpreter_);
+        runPython (aof, "sys.argv = 'reem'", *interpreter_);
+        runPython(aof,"import startup", *interpreter_);
     }
 
     catch(const std::runtime_error& e)

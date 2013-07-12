@@ -43,6 +43,7 @@
 # include <forward_command_controller/forward_command_controller.h>
 # include <dynamic_graph_bridge/ros_interpreter.hh>
 # include "sot_controller/sot_reem_device.h"
+# include <boost/shared_ptr.hpp>
 
 /**
  * \brief Position controller for the REEM robot. It is wrapping sot_reem_device.
@@ -58,7 +59,7 @@ namespace sot_reem_controller
 
   private:
     /// Embedded python interpreter accessible via a ROS service.
-    dynamicgraph::Interpreter interpreter_;
+      boost::shared_ptr<dynamicgraph::Interpreter> interpreter_;
     /// Pointer to Entity StackOfTasks
     SotReemDevice* device_;
     /// Path to the log file
