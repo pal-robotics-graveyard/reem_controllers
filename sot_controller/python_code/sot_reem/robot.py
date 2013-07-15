@@ -24,7 +24,7 @@ class Reem(AbstractHumanoidRobot):
     """
 
     #OperationalPoints = ['right-wrist','left-wrist','waist','right-ankle','left-ankle']
-    OperationalPoints = ['right-wrist','left-wrist','waist','gaze']
+    #OperationalPoints = ['right-wrist','left-wrist','waist','gaze']
 
     tracedSignals = {
         'dynamic': ["com", "zmp", "position", "velocity", "acceleration"],

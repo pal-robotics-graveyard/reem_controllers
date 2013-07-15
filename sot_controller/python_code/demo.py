@@ -19,13 +19,13 @@ xyz = numpy.array([0.35,-0.3,1.25])
 goal_rw = goalDef(xyz,quat)
 goal_lw = goalDef(xyz,quat)
 
-taskRW = MetaTaskKine6d('rw',robot.dynamic,'right-wrist','right-wrist')
+taskRW = MetaTaskKine6d('rw',robot.dynamic,'arm_right_tool_joint','arm_right_tool_joint')
 taskRW.feature.frame('current')
 
-taskLW = MetaTaskKine6d('lw',robot.dynamic,'left-wrist','left-wrist')
+taskLW = MetaTaskKine6d('lw',robot.dynamic,'arm_left_tool_joint','arm_left_tool_joint')
 taskLW.feature.frame('current')
 
-taskGAZE = MetaTaskVisualPoint('gz',robot.dynamic,'gaze','gaze')
+taskGAZE = MetaTaskVisualPoint('gz',robot.dynamic,'camera_joint','camera_joint')
 taskGAZE.gain.setConstant(1000)
 taskGAZE.featureDes.xy.value = (0,0)
 
@@ -39,7 +39,7 @@ taskJL.referenceSup.value = robot.dynamic.upperJl.value
 taskJL.dt.value = 0.001
 taskJL.selec.value = toFlags(range(6,robot.dimension))
 
-taskWT = MetaTaskKine6d('wt',robot.dynamic,'waist','waist')
+taskWT = MetaTaskKine6d('wt',robot.dynamic,'torso_base_joint','torso_base_joint')
 taskWT.feature.frame('desired')
 taskWT.gain.setConstant(1000)
 
