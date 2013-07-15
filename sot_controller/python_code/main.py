@@ -1,13 +1,13 @@
 from startup import *
 
+filename = "/tmp/out_from_py.txt"
+
 def goalDef(xyz,quat):
     goal = numpy.matrix([[0 , 0, 0, xyz[0]], [0,  0, 0, xyz[1]], [0, 0, 0, xyz[2]], [0, 0, 0, 1]])
     goal_r = quat2mat(quat)
     goal[0:3,0:3] = goal_r
     return goal
 
-jointLimits_flag = 1
-contact_waist_flag = 1
 gaze_flag = 1
 rw_flag = 1
 lw_flag = 0
@@ -61,11 +61,8 @@ else:
     robot.dynamic.com.recompute(0)
     taskCOM.controlGain.value = 10
 
-if jointLimits_flag:
-    push(taskJL)
-
-if contact_waist_flag:
-    solver.addContact(taskWT)
+push(taskJL)
+solver.addContact(taskWT)
 
 if rw_flag:
     push(taskRW)
@@ -91,10 +88,8 @@ time.sleep(15)
 
 err2file(taskRW,filename,"w")
 err2file(taskLW,filename,"a")
-err2file(taskGAZE,filename,"a") 
+err2file(taskGAZE,filename,"a")
   
-#Unused code:
-"""      
 out_file = open("/tmp/joints_limits","w")
 count = 0
 for elem in robot.device.state.value:
@@ -104,11 +99,7 @@ for elem in robot.device.state.value:
     out_file.write("Rank: " + str(count) +  " state value: " + str(elem) + " lower bound: " + str(l) + "\n")
     out_file.write("Rank: " + str(count) +  " state value: " + str(elem) + " upper bound: " + str(u) + "\n")  
 
-out_file.close()     
-"""
-
-
-
+out_file.close()
 
 
 

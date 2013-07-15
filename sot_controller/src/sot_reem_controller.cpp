@@ -85,7 +85,7 @@ bool SotReemController::init(hardware_interface::PositionJointInterface *robot, 
 
     std::ofstream aof(LOG_PYTHON.c_str());
 
-    interpreter_.reset(new dynamicgraph::Interpreter(controller_nh) );
+    interpreter_.reset(new dynamicgraph::Interpreter(controller_nh));
 
     // Call startup
     try

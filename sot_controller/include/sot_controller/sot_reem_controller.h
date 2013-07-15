@@ -54,17 +54,17 @@
 
 namespace sot_reem_controller
 {
-  class SotReemController : public controller_interface::Controller<hardware_interface::PositionJointInterface>
-  {
+class SotReemController : public controller_interface::Controller<hardware_interface::PositionJointInterface>
+{
 
-  private:
+private:
     /// Embedded python interpreter accessible via a ROS service.
-      boost::shared_ptr<dynamicgraph::Interpreter> interpreter_;
+    boost::shared_ptr<dynamicgraph::Interpreter> interpreter_;
     /// Pointer to Entity StackOfTasks
     SotReemDevice* device_;
     /// Path to the log file
 
-  public:
+public:
     SotReemController();
     ~SotReemController();
 
@@ -77,7 +77,7 @@ namespace sot_reem_controller
     static const std::string LOG_PYTHON;
     joints_t joints_;
 
-  };
+};
 }
 
 # endif
