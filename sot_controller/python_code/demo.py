@@ -2,12 +2,6 @@ from startup import *
 
 filename = "/tmp/out_from_py.txt"
 
-def goalDef(xyz,quat):
-    goal = numpy.matrix([[0 , 0, 0, xyz[0]], [0,  0, 0, xyz[1]], [0, 0, 0, xyz[2]], [0, 0, 0, 1]])
-    goal_r = quat2mat(quat)
-    goal[0:3,0:3] = goal_r
-    return goal
-
 gaze_flag = 1
 rw_flag = 1
 lw_flag = 0
