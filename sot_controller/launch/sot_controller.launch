@@ -1,0 +1,6 @@
+<launch>
+
+<!-- launch the remote interpreter -->
+<node name="run_command" pkg="dynamic_graph_bridge" type="run_command" ns="sot_controller" output="screen"/>
+
+</launch>
