@@ -113,14 +113,15 @@ bool SotReemController::init(hardware_interface::PositionJointInterface *robot, 
     using namespace XmlRpc;
     XmlRpcValue joint_names;
     ros::NodeHandle nh;
-    if (!nh.getParam("jrl_map", joint_names)) //TODO: root_nh or a new global named node?
+    std::string topicName = "jrl_map";
+    if (!nh.getParam(topicName, joint_names)) //TODO: root_nh or a new global named node?
     {
-        ROS_ERROR_STREAM("No joints given (namespace:" << nh.getNamespace() << ").");
+        ROS_ERROR_STREAM("No joints given (expected namespace: /" + topicName + ").");
         return false;
     }
     if (joint_names.getType() != XmlRpcValue::TypeArray)
     {
-        ROS_ERROR_STREAM("Malformed joint specification (namespace:" << nh.getNamespace() << ").");
+        ROS_ERROR_STREAM("Malformed joint specification (namespace: /" + topicName + ").");
         return false;
     }
 
