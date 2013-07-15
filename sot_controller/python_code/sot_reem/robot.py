@@ -15,7 +15,7 @@
 # received a copy of the GNU Lesser General Public License along with
 # dynamic-graph. If not, see <http://www.gnu.org/licenses/>.
 
-from dynamic_graph.sot.dynamics.humanoid_robot import AbstractHumanoidRobot
+from humanoid_robot import AbstractHumanoidRobot
 from dynamic_graph.ros import RosRobotModel
 
 class Reem(AbstractHumanoidRobot):
