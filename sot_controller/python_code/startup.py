@@ -1,8 +1,8 @@
-# Create the reem robot model for the stack of tasks
+# Create the reem robot model and a solver for the stack of tasks
 from sot_reem.prologue import robot, solver
 
 # Useful modules to interact with the stack of tasks
-# They should be shared between the examples...
+# They should be shared between the demos...
 from dynamic_graph.sot.dyninv import *
 from dynamic_graph.sot.core.meta_task_6d import MetaTask6d,toFlags
 from dynamic_graph.sot.core.meta_tasks import setGain

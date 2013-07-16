@@ -101,6 +101,8 @@ bool SotReemController::init(hardware_interface::PositionJointInterface *robot, 
         runPython (aof, "sys.path = path", *interpreter_);
         runPython (aof, "sys.argv = 'reem'", *interpreter_);
         runPython(aof,"import startup", *interpreter_);
+
+        interpreter_->startRosService();
     }
 
     catch(const std::runtime_error& e)
