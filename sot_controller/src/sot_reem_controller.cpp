@@ -45,6 +45,9 @@
 # include <dynamic_graph_bridge/ros_init.hh>
 # include <dynamic_graph_bridge/RunCommand.h>
 
+#include <boost/thread/thread.hpp>
+#include <boost/thread/condition.hpp>
+
 namespace sot_reem_controller {
 
 const std::string SotReemController::LOG_PYTHON="/tmp/sot_reem_controller.out";
@@ -181,6 +184,9 @@ void SotReemController::starting(const ros::Time& time) {
 }
 
 void SotReemController::update(const ros::Time& time, const ros::Duration& period) {
+
+    //HACK
+    std::cout<<"CONTROLLER THREAD ID: "<< boost::this_thread::get_id();
 
     device_->update(time,period,joints_);
 
