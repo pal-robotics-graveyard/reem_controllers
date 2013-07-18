@@ -173,6 +173,9 @@ void SotReemController::starting(const ros::Time& time) {
 
 void SotReemController::update(const ros::Time& time, const ros::Duration& period) {
 
+    //HACK
+    std::cout<<"CONTROLLER THREAD ID: "<< boost::this_thread::get_id()<<std::endl;
+
     device_.update(time,period,joints_);
 
 }
