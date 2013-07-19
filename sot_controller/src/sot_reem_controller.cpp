@@ -186,22 +186,25 @@ void SotReemController::starting(const ros::Time& time) {
     }
 
     ros::Duration period;
-    device_->startThread(time,period);
+    device_->startThread(time,period); // TODO: Need to be moved in init
 
 }
 
 void SotReemController::update(const ros::Time& time, const ros::Duration& period) {
 
-    //HACK
-    //std::cout<<"CONTROLLER THREAD ID: "<< boost::this_thread::get_id()<<std::endl;
-    //std::cout<<"PERIOD: "<<period.toSec()<<std::endl;
+    {
+        boost::lock_guard<boost::mutex> lock(device_->mut);
+        device_->run = true;
+    }
+    device_->cond.notify_one();
+
+    // TODO: Should the controller wait for the device?
 
     ml::Vector state = device_->getState();
 
     for (unsigned int i = 0; i<joints_.size(); i++){
         joints_[i].setCommand(state(i));
     }
-
 
 }
 

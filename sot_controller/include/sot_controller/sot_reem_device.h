@@ -76,13 +76,17 @@ public:
     /// \brief Called at each control loop.
     void update(const ros::Time& time, const ros::Duration& period); // TODO: Maybe private...
 
-     /// \}
+    /// \}
 
     void startThread(const ros::Time& time, const ros::Duration& period);
 
     void stopThread();
 
     ml::Vector getState();
+
+    boost::condition_variable cond;
+    boost::mutex mut;
+    bool run;
 
     /// \brief Default offset.
     static const unsigned int offset_ = 6;
@@ -91,8 +95,6 @@ private:
 
     /// \brief Object thread.
     boost::thread m_Thread_;
-
-    bool run_;
 
 };
 

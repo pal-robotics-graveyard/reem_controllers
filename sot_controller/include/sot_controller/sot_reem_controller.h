@@ -54,6 +54,7 @@
 
 namespace sot_reem_controller
 {
+
 class SotReemController : public controller_interface::Controller<hardware_interface::PositionJointInterface>
 {
 

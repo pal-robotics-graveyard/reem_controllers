@@ -56,7 +56,7 @@ const std::string SotReemDevice::CLASS_NAME = "SotReemDevice";
 
 SotReemDevice::SotReemDevice(const std::string& entityName):
     dynamicgraph::sot::Device(entityName),
-    run_ (false)
+    run(false)
 {}
 
 SotReemDevice::~SotReemDevice(){}
@@ -98,14 +98,12 @@ void SotReemDevice::starting(const ros::Time& time,joints_t& joints_){
 
 void SotReemDevice::startThread(const ros::Time& time, const ros::Duration& period){
 
-    run_ = true;
     m_Thread_ = boost::thread(&SotReemDevice::update, this, time, period);
 
 }
 
 void SotReemDevice::stopThread(){
 
-    run_ = false;
     m_Thread_.join();
 
 }
@@ -126,16 +124,20 @@ ml::Vector SotReemDevice::getState(){
 
 void SotReemDevice::update(const ros::Time& time, const ros::Duration& period){
 
-    while(run_){
+    while(true){
+        while(!run)
+        {}
         // Integrate control
         try
         {
-            increment(0.001);
-            //boost::posix_time::seconds workTime(0.01);
-            //boost::this_thread::sleep(workTime);
+            increment(0.001); // TODO: Now dt is hardcoded...
+            run = false;
         }
         catch (...)
         {}
     }
+
+
+
 }
 
