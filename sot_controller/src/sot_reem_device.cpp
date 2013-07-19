@@ -55,7 +55,8 @@ using dynamicgraph::sot::ExceptionFactory;
 const std::string SotReemDevice::CLASS_NAME = "SotReemDevice";
 
 SotReemDevice::SotReemDevice(const std::string& entityName):
-    dynamicgraph::sot::Device(entityName)
+    dynamicgraph::sot::Device(entityName),
+    run_ (false)
 {}
 
 SotReemDevice::~SotReemDevice(){}
@@ -95,22 +96,31 @@ void SotReemDevice::starting(const ros::Time& time,joints_t& joints_){
 
 }
 
-void SotReemDevice::update(const ros::Time& time, const ros::Duration& period, joints_t& joints_){
+void SotReemDevice::startThread(const ros::Time& time, const ros::Duration& period){
 
-    // Integrate control
-    try
-    {
-        increment (period.toSec());
+    run_ = true;
+    m_Thread_ = boost::thread(&SotReemDevice::update, this, time, period);
+
+}
+
+void SotReemDevice::stopThread(){
+
+    run_ = false;
+    m_Thread_.join();
+
+}
+
+
+void SotReemDevice::update(const ros::Time& time, const ros::Duration& period){
+
+    while(run_){
+        // Integrate control
+        try
+        {
+            increment(period.toSec());;
+        }
+        catch (...)
+        {}
     }
-    catch (...)
-    {}
-
-    sotDEBUG (25) << "state = " << state_ << std::endl;
-
-    for (unsigned int i = 0; i<joints_.size(); i++){
-        joints_[i].setCommand(state_(i+offset));
-        //std::cout<<"Joint: "<<i+1<<" name: "<<joints_[i].getName()<<" effort: "<<state_(i+offset)<<std::endl;
-    }
-
 }
 

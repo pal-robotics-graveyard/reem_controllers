@@ -43,6 +43,8 @@
 # include <sot/core/device.hh>
 # include <forward_command_controller/forward_command_controller.h>
 
+# include <boost/thread.hpp>
+
 /**
  * \brief Interface controller for the stack of tasks. It is wrapped by sot_reem_controller.
  */
@@ -72,13 +74,21 @@ public:
     void starting(const ros::Time& time,joints_t& joints_);
 
     /// \brief Called at each control loop.
-    void update(const ros::Time& time, const ros::Duration& period, joints_t& joints_);
+    void update(const ros::Time& time, const ros::Duration& period); // TODO: Maybe private...
+
+    void startThread(const ros::Time& time, const ros::Duration& period);
 
     /// \}
 
 private:
     /// \brief Default offset.
-    static const unsigned int offset = 6;
+    static const unsigned int offset_ = 6;
+
+    /// \brief Object thread.
+    boost::thread m_Thread_;
+
+    bool run_;
+
 };
 
 }
