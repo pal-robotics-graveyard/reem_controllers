@@ -57,6 +57,9 @@ SotReemController::SotReemController():
     device_ (new SotReemDevice("robot_device")) {}
 
 SotReemController::~SotReemController() {
+
+    device_->stopThread();
+
     for (int i = 0; i < joints_.size(); ++i){
         ROS_INFO("Current joint_%d position: %f64\n",i+1,joints_[i].getPosition());
     }
@@ -181,12 +184,23 @@ void SotReemController::starting(const ros::Time& time) {
     {
         ROS_ERROR_STREAM(e.what());
     }
+
+    ros::Duration period;
+    device_->startThread(time,period);
+
 }
 
 void SotReemController::update(const ros::Time& time, const ros::Duration& period) {
 
     //HACK
-    std::cout<<"CONTROLLER THREAD ID: "<< boost::this_thread::get_id()<<std::endl;
+    //std::cout<<"CONTROLLER THREAD ID: "<< boost::this_thread::get_id()<<std::endl;
+    //std::cout<<"PERIOD: "<<period.toSec()<<std::endl;
+
+    ml::Vector state = device_->getState();
+
+    for (unsigned int i = 0; i<joints_.size(); i++){
+        joints_[i].setCommand(state(i));
+    }
 
 
 }

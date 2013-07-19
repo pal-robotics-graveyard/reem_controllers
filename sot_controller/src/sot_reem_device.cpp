@@ -78,10 +78,10 @@ void SotReemDevice::starting(const ros::Time& time,joints_t& joints_){
     sotDEBUG (25) << "state.size () = " << state.size () << std::endl;
     sotDEBUG (25) << "joints_.size () = " << joints_.size () << std::endl;
 
-    if (state.size() == joints_.size() + offset)
+    if (state.size() == joints_.size() + offset_)
         for (unsigned int i = 0 ; i < joints_.size() ; i++){
-            state(i+offset) = joints_[i].getPosition();
-            std::cout<<"joint: "<<joints_[i].getName()<<" init state: "<<state(i+offset)<<std::endl;
+            state(i+offset_) = joints_[i].getPosition();
+            //std::cout<<"joint: "<<joints_[i].getName()<<" init state: "<<state(i+offset)<<std::endl;
         }
     else{
         std::stringstream err;
@@ -110,6 +110,19 @@ void SotReemDevice::stopThread(){
 
 }
 
+ml::Vector SotReemDevice::getState(){
+
+
+    ml::Vector outputState;
+    outputState.resize(state_.size()-6);
+    for (unsigned int i = 0; i<outputState.size(); i++){
+        outputState(i) = state_(i+offset_);
+    }
+
+    return outputState;
+
+}
+
 
 void SotReemDevice::update(const ros::Time& time, const ros::Duration& period){
 
@@ -117,7 +130,9 @@ void SotReemDevice::update(const ros::Time& time, const ros::Duration& period){
         // Integrate control
         try
         {
-            increment(period.toSec());;
+            increment(0.001);
+            //boost::posix_time::seconds workTime(0.01);
+            //boost::this_thread::sleep(workTime);
         }
         catch (...)
         {}
