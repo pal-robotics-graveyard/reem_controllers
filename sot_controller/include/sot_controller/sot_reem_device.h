@@ -78,6 +78,14 @@ public:
 
     /// \}
 
+    void WaitSot();
+
+    void RunSot();
+
+    bool GetStatus();
+
+    void SetStatus(bool status);
+
     void startThread(const ros::Time& time, const ros::Duration& period);
 
     void stopThread();
@@ -88,6 +96,11 @@ public:
     static const unsigned int offset_ = 6;
 
 private:
+
+
+    boost::mutex mtx_;
+    int run_sot_;
+    boost::condition_variable cond_;
 
     /// \brief Object thread.
     boost::thread m_Thread_;

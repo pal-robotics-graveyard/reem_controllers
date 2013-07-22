@@ -49,17 +49,14 @@
 #include <dynamic-graph/all-commands.h>
 #include "sot/core/api.hh"
 
-# include <sot_controller/traffic_agent.h>
-
-extern TrafficAgent ta;
-
 using sot_reem_controller::SotReemDevice;
 using dynamicgraph::sot::ExceptionFactory;
 
 const std::string SotReemDevice::CLASS_NAME = "SotReemDevice";
 
 SotReemDevice::SotReemDevice(const std::string& entityName):
-    dynamicgraph::sot::Device(entityName)
+    dynamicgraph::sot::Device(entityName),
+    run_sot_(false)
 
 {}
 
@@ -124,21 +121,45 @@ ml::Vector SotReemDevice::getState(){
 
 }
 
+void SotReemDevice::WaitSot() {
+    boost::unique_lock<boost::mutex> guard(mtx_);
+    while(!run_sot_)
+    {
+        cond_.wait(guard);
+    }
+    // Integrate control
+    try
+    {
+        increment(0.001); // TODO: Now dt is hardcoded...
+    }
+    catch (...)
+    {}
+}
+
+    void SotReemDevice::RunSot() {
+        {
+            boost::lock_guard<boost::mutex> guard(mtx_);
+            run_sot_ = true;
+        }
+        cond_.notify_one();
+    }
+
+    bool SotReemDevice::GetStatus() {
+        boost::lock_guard<boost::mutex> guard(mtx_);
+        return run_sot_;
+    }
+
+    void SotReemDevice::SetStatus(bool status) {
+        boost::lock_guard<boost::mutex> guard(mtx_);
+        run_sot_ = status;
+    }
+
 
 void SotReemDevice::update(const ros::Time& time, const ros::Duration& period){
 
     while(true){
-        ta.WaitSot();
-
-        // Integrate control
-        try
-        {
-            increment(0.001); // TODO: Now dt is hardcoded...
-        }
-        catch (...)
-        {}
-
-        ta.SetStatus(false);
+        WaitSot();
+        SetStatus(false);
     }
 
 }

@@ -48,10 +48,6 @@
 #include <boost/thread/thread.hpp>
 #include <boost/thread/condition.hpp>
 
-# include <sot_controller/traffic_agent.h>
-
-extern TrafficAgent ta;
-
 namespace sot_reem_controller {
 
 const std::string SotReemController::LOG_PYTHON="/tmp/sot_reem_controller.out";
@@ -196,9 +192,9 @@ void SotReemController::starting(const ros::Time& time) {
 
 void SotReemController::update(const ros::Time& time, const ros::Duration& period) {
 
-    ta.RunSot();
+    device_->RunSot();
 
-    while (ta.GetStatus()){
+    while (device_->GetStatus()){
 
     }
 
