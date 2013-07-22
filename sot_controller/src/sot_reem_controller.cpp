@@ -48,6 +48,10 @@
 #include <boost/thread/thread.hpp>
 #include <boost/thread/condition.hpp>
 
+# include <sot_controller/traffic_agent.h>
+
+extern TrafficAgent ta;
+
 namespace sot_reem_controller {
 
 const std::string SotReemController::LOG_PYTHON="/tmp/sot_reem_controller.out";
@@ -192,18 +196,16 @@ void SotReemController::starting(const ros::Time& time) {
 
 void SotReemController::update(const ros::Time& time, const ros::Duration& period) {
 
-    {
-        boost::lock_guard<boost::mutex> lock(device_->mut);
-        device_->run = true;
-    }
-    device_->cond.notify_one();
+    ta.RunSot();
 
-    // TODO: Should the controller wait for the device?
+    while (ta.GetStatus()){
+
+    }
 
     ml::Vector state = device_->getState();
-
     for (unsigned int i = 0; i<joints_.size(); i++){
         joints_[i].setCommand(state(i));
+        //std::cout<<"joint: "<<i<<" value: "<<state(i)<<std::endl;
     }
 
 }

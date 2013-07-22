@@ -84,10 +84,6 @@ public:
 
     ml::Vector getState();
 
-    boost::condition_variable cond;
-    boost::mutex mut;
-    bool run;
-
     /// \brief Default offset.
     static const unsigned int offset_ = 6;
 

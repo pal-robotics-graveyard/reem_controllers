@@ -33,7 +33,7 @@ taskJL.referenceSup.value = robot.dynamic.upperJl.value
 taskJL.dt.value = 0.001
 taskJL.selec.value = toFlags(range(6,robot.dimension))
 
-taskWT = MetaTaskKine6d('wt',robot.dynamic,'torso_base_joint','torso_base_joint')
+taskWT = MetaTaskKine6d('wt',robot.dynamic,'base_joint','base_joint')
 taskWT.feature.frame('desired')
 taskWT.gain.setConstant(1000)
 

@@ -49,14 +49,18 @@
 #include <dynamic-graph/all-commands.h>
 #include "sot/core/api.hh"
 
+# include <sot_controller/traffic_agent.h>
+
+extern TrafficAgent ta;
+
 using sot_reem_controller::SotReemDevice;
 using dynamicgraph::sot::ExceptionFactory;
 
 const std::string SotReemDevice::CLASS_NAME = "SotReemDevice";
 
 SotReemDevice::SotReemDevice(const std::string& entityName):
-    dynamicgraph::sot::Device(entityName),
-    run(false)
+    dynamicgraph::sot::Device(entityName)
+
 {}
 
 SotReemDevice::~SotReemDevice(){}
@@ -110,7 +114,6 @@ void SotReemDevice::stopThread(){
 
 ml::Vector SotReemDevice::getState(){
 
-
     ml::Vector outputState;
     outputState.resize(state_.size()-6);
     for (unsigned int i = 0; i<outputState.size(); i++){
@@ -125,19 +128,18 @@ ml::Vector SotReemDevice::getState(){
 void SotReemDevice::update(const ros::Time& time, const ros::Duration& period){
 
     while(true){
-        while(!run)
-        {}
+        ta.WaitSot();
+
         // Integrate control
         try
         {
             increment(0.001); // TODO: Now dt is hardcoded...
-            run = false;
         }
         catch (...)
         {}
+
+        ta.SetStatus(false);
     }
-
-
 
 }
 
