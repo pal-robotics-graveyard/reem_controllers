@@ -192,7 +192,7 @@ void SotReemController::starting(const ros::Time& time) {
 
 void SotReemController::update(const ros::Time& time, const ros::Duration& period) {
 
-    std::cout<<" Controller update "<<boost::this_thread::get_id()<<std::endl;
+    //std::cout<<" Controller update "<<boost::this_thread::get_id()<<std::endl;
 
     device_->RunSot();
 
