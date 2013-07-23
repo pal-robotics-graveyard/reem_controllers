@@ -105,6 +105,7 @@ private:
 
     mutex_t mtx_run_;
     mutex_t mtx_state_;
+    mutex_t mtx_status_;
     int run_sot_;
     boost::condition_variable cond_;
 

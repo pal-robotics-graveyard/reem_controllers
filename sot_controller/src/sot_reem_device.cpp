@@ -112,6 +112,7 @@ void SotReemDevice::stopThread(){
 
 ml::Vector SotReemDevice::getState(){
     boost::unique_lock<mutex_t> guard(mtx_state_);
+    std::cout<<" getState "<<boost::this_thread::get_id()<<std::endl;
     ml::Vector outputState;
     outputState.resize(shared_state_.size()-6);
     for (unsigned int i = 0; i<outputState.size(); i++){
@@ -124,51 +125,57 @@ ml::Vector SotReemDevice::getState(){
 
 void SotReemDevice::setState(ml::Vector state){
     boost::unique_lock<mutex_t> guard(mtx_state_);
+    std::cout<<" setState "<<boost::this_thread::get_id()<<std::endl;
     shared_state_ = state;
-
 }
 
 void SotReemDevice::WaitSot() {
     boost::unique_lock<mutex_t> guard(mtx_run_);
-    while(!run_sot_)
+    std::cout<<" WaitSot START "<<boost::this_thread::get_id()<<" run_sot_ "<<GetStatus()<<std::endl;
+    //while(!run_sot_)
+    while(!GetStatus())
     {
+        std::cout<<" WaitSot WHILE "<<boost::this_thread::get_id()<<std::endl;
         cond_.wait(guard);
     }
     // Integrate control
     try
     {
+        std::cout<<" WaitSot INCREMENT "<<boost::this_thread::get_id()<<" run_sot_ "<<GetStatus()<<std::endl;
         increment(0.001); // TODO: Now dt is hardcoded...
         setState(state_);
-        run_sot_ = false;
+        //run_sot_ = false;
     }
     catch (...)
     {}
 }
 
-    void SotReemDevice::RunSot() {
-        {
-            boost::lock_guard<mutex_t> guard(mtx_run_);
-            run_sot_ = true;
-        }
-        cond_.notify_one();
-    }
-
-    bool SotReemDevice::GetStatus() {
+void SotReemDevice::RunSot() {
+    {
         boost::lock_guard<mutex_t> guard(mtx_run_);
-        return run_sot_;
+        std::cout<<" RunSot "<<boost::this_thread::get_id()<<std::endl;
+        //run_sot_ = true;
+        SetStatus(true);
     }
+    cond_.notify_one();
+}
 
-    void SotReemDevice::SetStatus(bool status) {
-        boost::lock_guard<mutex_t> guard(mtx_run_);
-        run_sot_ = status;
-    }
+bool SotReemDevice::GetStatus() {
+    boost::lock_guard<mutex_t> guard(mtx_status_);
+    return run_sot_;
+}
+
+void SotReemDevice::SetStatus(bool status) {
+    boost::lock_guard<mutex_t> guard(mtx_status_);
+    run_sot_ = status;
+}
 
 
 void SotReemDevice::update(const ros::Time& time, const ros::Duration& period){
 
     while(true){
         WaitSot();
-        //SetStatus(false);
+        SetStatus(false);
     }
 
 }

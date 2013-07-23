@@ -192,13 +192,13 @@ void SotReemController::starting(const ros::Time& time) {
 
 void SotReemController::update(const ros::Time& time, const ros::Duration& period) {
 
+    //std::cout<<" Controller update "<<boost::this_thread::get_id()<<std::endl;
+
     device_->RunSot();
 
     ml::Vector state = device_->getState();
-    for (unsigned int i = 0; i<joints_.size(); i++){
+    for (unsigned int i = 0; i<joints_.size(); i++)
         joints_[i].setCommand(state(i));
-        //std::cout<<"joint: "<<i<<" value: "<<state(i)<<std::endl;
-    }
 
 }
 
