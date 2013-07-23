@@ -142,6 +142,10 @@ void SotReemDevice::WaitSot() {
     try
     {
         std::cout<<" WaitSot INCREMENT "<<boost::this_thread::get_id()<<" run_sot_ "<<GetStatus()<<std::endl;
+
+        //boost::posix_time::seconds workTime(1.0);
+        //boost::this_thread::sleep(workTime);
+
         increment(0.001); // TODO: Now dt is hardcoded...
         setState(state_);
         //run_sot_ = false;
@@ -151,12 +155,12 @@ void SotReemDevice::WaitSot() {
 }
 
 void SotReemDevice::RunSot() {
-    {
-        boost::lock_guard<mutex_t> guard(mtx_run_);
-        std::cout<<" RunSot "<<boost::this_thread::get_id()<<std::endl;
-        //run_sot_ = true;
-        SetStatus(true);
-    }
+
+    boost::unique_lock<mutex_t> guard(mtx_run_);
+    std::cout<<" RunSot "<<boost::this_thread::get_id()<<std::endl;
+    //run_sot_ = true;
+    SetStatus(true);
+    guard.unlock();
     cond_.notify_one();
 }
 
