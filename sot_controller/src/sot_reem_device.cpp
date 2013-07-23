@@ -155,14 +155,15 @@ void SotReemDevice::WaitSot() {
 }
 
 void SotReemDevice::RunSot() {
-    boost::unique_lock<mutex_t> guard(mtx_run_, boost::defer_lock);
-    if(guard.try_lock()){
+    //boost::unique_lock<mutex_t> guard(mtx_run_, boost::defer_lock);
+    boost::unique_lock<mutex_t> guard(mtx_run_);
+    //if(guard.try_lock()){
         //std::cout<<" RunSot "<<boost::this_thread::get_id()<<std::endl;
         //run_sot_ = true;
         SetStatus(true);
-        guard.unlock();
+        //guard.unlock();
         cond_.notify_one();
-    }
+    //}
 }
 
 bool SotReemDevice::GetStatus() {

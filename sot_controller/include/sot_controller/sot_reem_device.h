@@ -51,6 +51,7 @@
 
 typedef std::vector<hardware_interface::JointHandle> joints_t;
 typedef boost::mutex mutex_t;
+//typedef boost::timed_mutex time_mutex_t;
 
 
 namespace sot_reem_controller
