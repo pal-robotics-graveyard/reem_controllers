@@ -191,16 +191,8 @@ void SotReemController::starting(const ros::Time& time) {
 }
 
 void SotReemController::update(const ros::Time& time, const ros::Duration& period) {
-    ros::Time starting_time = ros::Time::now();
 
     device_->RunSot();
-
-    ros::Duration shorten_period = period - ros::Duration(period * 0.1);
-
-    while (device_->GetStatus() && (ros::Time::now()<(starting_time+shorten_period))){
-    }
-
-    //while (device_->GetStatus()){}
 
     ml::Vector state = device_->getState();
     for (unsigned int i = 0; i<joints_.size(); i++){

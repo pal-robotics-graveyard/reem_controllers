@@ -50,6 +50,8 @@
  */
 
 typedef std::vector<hardware_interface::JointHandle> joints_t;
+typedef boost::mutex mutex_t;
+
 
 namespace sot_reem_controller
 {
@@ -92,13 +94,17 @@ public:
 
     ml::Vector getState();
 
+    void setState(ml::Vector);
+
     /// \brief Default offset.
     static const unsigned int offset_ = 6;
 
 private:
 
+    ml::Vector shared_state_;
 
-    boost::mutex mtx_;
+    mutex_t mtx_run_;
+    mutex_t mtx_state_;
     int run_sot_;
     boost::condition_variable cond_;
 

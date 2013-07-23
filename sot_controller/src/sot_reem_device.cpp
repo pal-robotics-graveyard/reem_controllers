@@ -94,6 +94,7 @@ void SotReemDevice::starting(const ros::Time& time,joints_t& joints_){
 
     // Set the initial conditions
     state_ = state;
+    shared_state_ = state;
 
 }
 
@@ -110,19 +111,25 @@ void SotReemDevice::stopThread(){
 }
 
 ml::Vector SotReemDevice::getState(){
-
+    boost::unique_lock<mutex_t> guard(mtx_state_);
     ml::Vector outputState;
-    outputState.resize(state_.size()-6);
+    outputState.resize(shared_state_.size()-6);
     for (unsigned int i = 0; i<outputState.size(); i++){
-        outputState(i) = state_(i+offset_);
+        outputState(i) = shared_state_(i+offset_);
     }
 
     return outputState;
 
 }
 
+void SotReemDevice::setState(ml::Vector state){
+    boost::unique_lock<mutex_t> guard(mtx_state_);
+    shared_state_ = state;
+
+}
+
 void SotReemDevice::WaitSot() {
-    boost::unique_lock<boost::mutex> guard(mtx_);
+    boost::unique_lock<mutex_t> guard(mtx_run_);
     while(!run_sot_)
     {
         cond_.wait(guard);
@@ -131,6 +138,8 @@ void SotReemDevice::WaitSot() {
     try
     {
         increment(0.001); // TODO: Now dt is hardcoded...
+        setState(state_);
+        run_sot_ = false;
     }
     catch (...)
     {}
@@ -138,19 +147,19 @@ void SotReemDevice::WaitSot() {
 
     void SotReemDevice::RunSot() {
         {
-            boost::lock_guard<boost::mutex> guard(mtx_);
+            boost::lock_guard<mutex_t> guard(mtx_run_);
             run_sot_ = true;
         }
         cond_.notify_one();
     }
 
     bool SotReemDevice::GetStatus() {
-        boost::lock_guard<boost::mutex> guard(mtx_);
+        boost::lock_guard<mutex_t> guard(mtx_run_);
         return run_sot_;
     }
 
     void SotReemDevice::SetStatus(bool status) {
-        boost::lock_guard<boost::mutex> guard(mtx_);
+        boost::lock_guard<mutex_t> guard(mtx_run_);
         run_sot_ = status;
     }
 
@@ -159,7 +168,7 @@ void SotReemDevice::update(const ros::Time& time, const ros::Duration& period){
 
     while(true){
         WaitSot();
-        SetStatus(false);
+        //SetStatus(false);
     }
 
 }
