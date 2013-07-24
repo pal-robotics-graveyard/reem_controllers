@@ -63,7 +63,6 @@ private:
     boost::shared_ptr<dynamicgraph::Interpreter> interpreter_;
     /// Pointer to Entity StackOfTasks
     SotReemDevice* device_;
-    /// Path to the log file
 
 public:
     SotReemController();

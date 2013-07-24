@@ -51,7 +51,6 @@
 
 typedef std::vector<hardware_interface::JointHandle> joints_t;
 typedef boost::mutex mutex_t;
-//typedef boost::timed_mutex time_mutex_t;
 
 
 namespace sot_reem_controller
@@ -76,42 +75,54 @@ public:
     /// \brief Called when plug-in is started.
     void starting(const ros::Time& time,joints_t& joints_);
 
-    /// \brief Called at each control loop.
-    void update(const ros::Time& time, const ros::Duration& period); // TODO: Maybe private...
-
     /// \}
 
-    void WaitSot();
+    /// \brief Trigger the device computation.
+    void runDevice();
 
-    void RunSot();
+    /// \brief Wait for the trigger.
+    void pauseDevice(const ros::Duration& period);
 
-    bool GetStatus();
+    /// \brief Get the execution state of the device.
+    bool getDeviceStatus();
 
-    void SetStatus(bool status);
+    /// \brief Set the execution state of the device.
+    void setDeviceStatus(bool status);
 
+    /// \brief Start the thread.
     void startThread(const ros::Time& time, const ros::Duration& period);
 
+    /// \brief Stop the thread.
     void stopThread();
 
+    /// \brief Get the robot state.
     ml::Vector getState();
 
+    /// \brief Set the robot state.
     void setState(ml::Vector);
+
+private:
+
+    /// \name Used for the threading and the synchronization with the controller.
+    /// \{
+    ml::Vector shared_state_;
+    mutex_t mtx_run_;
+    mutex_t mtx_state_;
+    mutex_t mtx_status_;
+    boost::condition_variable cond_;
+    /// \}
+
+    /// \brief Execution state of the Device, true is running, false is stopped.
+    int status_;
+
+    /// \brief Object thread.
+    boost::thread m_Thread_;
 
     /// \brief Default offset.
     static const unsigned int offset_ = 6;
 
-private:
-
-    ml::Vector shared_state_;
-
-    mutex_t mtx_run_;
-    mutex_t mtx_state_;
-    mutex_t mtx_status_;
-    int run_sot_;
-    boost::condition_variable cond_;
-
-    /// \brief Object thread.
-    boost::thread m_Thread_;
+    /// \brief Called at each control loop.
+    void update(const ros::Time& time, const ros::Duration& period);
 
 };
 

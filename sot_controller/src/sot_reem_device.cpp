@@ -56,12 +56,11 @@ const std::string SotReemDevice::CLASS_NAME = "SotReemDevice";
 
 SotReemDevice::SotReemDevice(const std::string& entityName):
     dynamicgraph::sot::Device(entityName),
-    run_sot_(false)
+    status_(false)
 
 {}
 
 SotReemDevice::~SotReemDevice(){}
-
 
 bool SotReemDevice::init()
 {
@@ -69,7 +68,6 @@ bool SotReemDevice::init()
 }
 
 void SotReemDevice::starting(const ros::Time& time,joints_t& joints_){
-
 
     // Read state from motor command
     int t = stateSOUT.getTime () + 1;
@@ -82,7 +80,6 @@ void SotReemDevice::starting(const ros::Time& time,joints_t& joints_){
     if (state.size() == joints_.size() + offset_)
         for (unsigned int i = 0 ; i < joints_.size() ; i++){
             state(i+offset_) = joints_[i].getPosition();
-            //std::cout<<"joint: "<<joints_[i].getName()<<" init state: "<<state(i+offset)<<std::endl;
         }
     else{
         std::stringstream err;
@@ -99,15 +96,11 @@ void SotReemDevice::starting(const ros::Time& time,joints_t& joints_){
 }
 
 void SotReemDevice::startThread(const ros::Time& time, const ros::Duration& period){
-
     m_Thread_ = boost::thread(&SotReemDevice::update, this, time, period);
-
 }
 
 void SotReemDevice::stopThread(){
-
-    m_Thread_.join();
-
+    m_Thread_.join(); //TODO: it is correct? Or I need to interrupt the thread
 }
 
 ml::Vector SotReemDevice::getState(){
@@ -118,9 +111,7 @@ ml::Vector SotReemDevice::getState(){
     for (unsigned int i = 0; i<outputState.size(); i++){
         outputState(i) = shared_state_(i+offset_);
     }
-
     return outputState;
-
 }
 
 void SotReemDevice::setState(ml::Vector state){
@@ -129,11 +120,10 @@ void SotReemDevice::setState(ml::Vector state){
     shared_state_ = state;
 }
 
-void SotReemDevice::WaitSot() {
+void SotReemDevice::pauseDevice(const ros::Duration& period) {
     boost::unique_lock<mutex_t> guard(mtx_run_);
-    //std::cout<<" WaitSot START "<<boost::this_thread::get_id()<<" run_sot_ "<<GetStatus()<<std::endl;
-    //while(!run_sot_)
-    while(!GetStatus())
+    //std::cout<<" WaitSot START "<<boost::this_thread::get_id()<<" status_ "<<GetStatus()<<std::endl;
+    while(!getDeviceStatus())
     {
         //std::cout<<" WaitSot WHILE "<<boost::this_thread::get_id()<<std::endl;
         cond_.wait(guard);
@@ -141,48 +131,37 @@ void SotReemDevice::WaitSot() {
     // Integrate control
     try
     {
-        //std::cout<<" WaitSot INCREMENT "<<boost::this_thread::get_id()<<" run_sot_ "<<GetStatus()<<std::endl;
-
-        //boost::posix_time::seconds workTime(0.1);
-        //boost::this_thread::sleep(workTime);
-
-        increment(0.001); // TODO: Now dt is hardcoded...
+        //std::cout<<" WaitSot INCREMENT "<<boost::this_thread::get_id()<<" status_ "<<GetStatus()<<std::endl;
+        increment(0.001); //TODO: Now dt is hardcoded...
         setState(state_);
-        //run_sot_ = false;
     }
     catch (...)
     {}
 }
 
-void SotReemDevice::RunSot() {
-    //boost::unique_lock<mutex_t> guard(mtx_run_, boost::defer_lock);
-    boost::unique_lock<mutex_t> guard(mtx_run_);
-    //if(guard.try_lock()){
-        //std::cout<<" RunSot "<<boost::this_thread::get_id()<<std::endl;
-        //run_sot_ = true;
-        SetStatus(true);
-        //guard.unlock();
-        cond_.notify_one();
-    //}
+void SotReemDevice::runDevice() {
+    {
+        boost::unique_lock<mutex_t> guard(mtx_run_);
+        setDeviceStatus(true);
+    }
+    cond_.notify_one();
 }
 
-bool SotReemDevice::GetStatus() {
+bool SotReemDevice::getDeviceStatus() {
     boost::lock_guard<mutex_t> guard(mtx_status_);
-    return run_sot_;
+    return status_;
 }
 
-void SotReemDevice::SetStatus(bool status) {
+void SotReemDevice::setDeviceStatus(bool status) {
     boost::lock_guard<mutex_t> guard(mtx_status_);
-    run_sot_ = status;
+    status_ = status;
 }
 
 
 void SotReemDevice::update(const ros::Time& time, const ros::Duration& period){
-
     while(true){
-        WaitSot();
-        SetStatus(false);
+        pauseDevice(period);
+        setDeviceStatus(false);
     }
-
 }
 

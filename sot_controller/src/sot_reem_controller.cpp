@@ -89,13 +89,13 @@ void SotReemController::runPython(std::ostream& file, const std::string& command
 bool SotReemController::init(hardware_interface::PositionJointInterface *robot, ros::NodeHandle& root_nh, ros::NodeHandle& controller_nh)
 {
 
-    std::ofstream aof(LOG_PYTHON.c_str());
-
     interpreter_.reset(new dynamicgraph::Interpreter(controller_nh));
 
     // Call startup
     try
     {
+        std::ofstream aof(LOG_PYTHON.c_str());
+
         runPython (aof, "import sys, os", *interpreter_);
         runPython (aof, "pythonpath = os.environ['PYTHONPATH']", *interpreter_);
         runPython (aof, "path = []", *interpreter_);
@@ -107,6 +107,8 @@ bool SotReemController::init(hardware_interface::PositionJointInterface *robot, 
         runPython (aof, "sys.path = path", *interpreter_);
         runPython (aof, "sys.argv = 'reem'", *interpreter_);
         runPython(aof,"import startup", *interpreter_);
+
+        aof.close();
 
         interpreter_->startRosService();
     }
@@ -167,8 +169,6 @@ bool SotReemController::init(hardware_interface::PositionJointInterface *robot, 
     // Member list of joint handles is updated only once all resources have been claimed
     joints_ = joints_tmp;
 
-    aof.close();
-
     // Call init inside sot_reem_device
     device_->init();
 
@@ -194,7 +194,7 @@ void SotReemController::update(const ros::Time& time, const ros::Duration& perio
 
     //std::cout<<" Controller update "<<boost::this_thread::get_id()<<std::endl;
 
-    device_->RunSot();
+    device_->runDevice();
 
     ml::Vector state = device_->getState();
     for (unsigned int i = 0; i<joints_.size(); i++)
