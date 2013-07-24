@@ -121,6 +121,7 @@ void SotReemDevice::setState(ml::Vector state){
 }
 
 void SotReemDevice::pauseDevice(const ros::Duration& period) {
+#ifdef COND_VAR_VER
     boost::unique_lock<mutex_t> guard(mtx_run_);
     //std::cout<<" WaitSot START "<<boost::this_thread::get_id()<<" status_ "<<GetStatus()<<std::endl;
     while(!getDeviceStatus())
@@ -128,6 +129,11 @@ void SotReemDevice::pauseDevice(const ros::Duration& period) {
         //std::cout<<" WaitSot WHILE "<<boost::this_thread::get_id()<<std::endl;
         cond_.wait(guard);
     }
+#else
+    boost::unique_lock<mutex_t> guard(mtx_run_, boost::defer_lock);
+    while(!getDeviceStatus()){ }
+    guard.lock();
+#endif
     // Integrate control
     try
     {
@@ -140,11 +146,16 @@ void SotReemDevice::pauseDevice(const ros::Duration& period) {
 }
 
 void SotReemDevice::runDevice() {
+#ifdef COND_VAR_VER
     {
         boost::unique_lock<mutex_t> guard(mtx_run_);
         setDeviceStatus(true);
     }
     cond_.notify_one();
+#else
+        boost::unique_lock<mutex_t> guard(mtx_run_);
+        setDeviceStatus(true);
+#endif
 }
 
 bool SotReemDevice::getDeviceStatus() {
@@ -156,7 +167,6 @@ void SotReemDevice::setDeviceStatus(bool status) {
     boost::lock_guard<mutex_t> guard(mtx_status_);
     status_ = status;
 }
-
 
 void SotReemDevice::update(const ros::Time& time, const ros::Duration& period){
     while(true){

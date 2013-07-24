@@ -45,6 +45,8 @@
 
 # include <boost/thread.hpp>
 
+//# define COND_VAR_VER
+
 /**
  * \brief Interface controller for the stack of tasks. It is wrapped by sot_reem_controller.
  */
