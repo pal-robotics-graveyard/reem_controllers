@@ -118,7 +118,7 @@ private:
     int status_;
 
     /// \brief Object thread.
-    boost::thread m_Thread_;
+    boost::thread thread_;
 
     /// \brief Default offset.
     static const unsigned int offset_ = 6;

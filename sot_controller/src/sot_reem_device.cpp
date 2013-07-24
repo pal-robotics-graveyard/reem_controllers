@@ -96,11 +96,11 @@ void SotReemDevice::starting(const ros::Time& time,joints_t& joints_){
 }
 
 void SotReemDevice::startThread(const ros::Time& time, const ros::Duration& period){
-    m_Thread_ = boost::thread(&SotReemDevice::update, this, time, period);
+    thread_ = boost::thread(&SotReemDevice::update, this, time, period);
 }
 
 void SotReemDevice::stopThread(){
-    m_Thread_.join(); //TODO: it is correct? Or I need to interrupt the thread
+    thread_.join(); //TODO: it is correct? Or I need to interrupt the thread
 }
 
 ml::Vector SotReemDevice::getState(){
