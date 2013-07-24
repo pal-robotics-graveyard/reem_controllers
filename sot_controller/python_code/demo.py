@@ -95,8 +95,3 @@ for elem in robot.device.state.value:
 
 out_file.close()
 
-
-
-
-
-
