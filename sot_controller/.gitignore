@@ -1,6 +1,5 @@
 bin
 build
-cmake
 lib
 *.user
 *~
