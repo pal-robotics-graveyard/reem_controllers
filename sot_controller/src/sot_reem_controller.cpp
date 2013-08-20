@@ -138,7 +138,7 @@ bool SotReemController::init(hardware_interface::PositionJointInterface *robot, 
     std::vector<hardware_interface::JointHandle> joints_tmp; // Temporary container of joint handles
 
     joints_tmp.resize(joint_names.size());
-    std::fill(joints_tmp.begin(),joints_tmp.end(),hardware_interface::JointHandle()); // Maybe it is not so efficient
+    std::fill(joints_tmp.begin(),joints_tmp.end(),hardware_interface::JointHandle());
     for (int i = 0; i < joint_names.size(); ++i)
     {
         XmlRpcValue &name_value = joint_names[i];
@@ -152,7 +152,6 @@ bool SotReemController::init(hardware_interface::PositionJointInterface *robot, 
         // Get a joint handle
         try
         {
-
             joints_tmp[i] = robot->getHandle(joint_name);
 
             ROS_DEBUG_STREAM("Found joint '" << joint_name << "' in the '" <<

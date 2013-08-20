@@ -42,12 +42,16 @@
 #include <dynamic-graph/factory.h>
 #include <dynamic-graph/command-setter.h>
 #include <dynamic-graph/debug.h>
-#include <sot/core/debug.hh>
+//#include <sot/core/debug.hh>
+#include "soth/debug.hpp"
 #include <sot/core/exception-factory.hh>
 #include <dynamic-graph/all-commands.h>
 
 #include <dynamic-graph/all-commands.h>
-#include "sot/core/api.hh"
+//#include "sot/core/api.hh"
+
+//#include <time.h>
+//#include <ctime>
 
 using sot_reem_controller::SotReemDevice;
 using dynamicgraph::sot::ExceptionFactory;
@@ -135,10 +139,19 @@ void SotReemDevice::pauseDevice(const ros::Duration& period) {
     guard.lock();
 #endif
     // Integrate control
-    try
-    {
+    try{
+        //struct timeval start;
+        //struct timeval end;
+        //int count = 0;
+        //gettimeofday(&start, NULL);
+        //do{
         //std::cout<<" WaitSot INCREMENT "<<boost::this_thread::get_id()<<" status_ "<<GetStatus()<<std::endl;
         increment(0.001); //TODO: Now dt is hardcoded...
+        //count ++;
+        //}while(count<10);
+        //gettimeofday(&end, NULL);
+        //long elapsed = (end.tv_usec-start.tv_usec);
+        //std::cout<<(1.0/1000000) * elapsed<<std::endl;
         setState(state_);
     }
     catch (...)
