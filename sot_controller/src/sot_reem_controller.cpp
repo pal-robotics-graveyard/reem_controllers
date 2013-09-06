@@ -185,13 +185,11 @@ void SotReemController::starting(const ros::Time& time) {
     }
 
     ros::Duration period;
-    device_->startThread(time,period); // TODO: Need to be moved in init
+    device_->startThread(time,period); // TODO: Should be moved in init
 
 }
 
 void SotReemController::update(const ros::Time& time, const ros::Duration& period) {
-
-    //std::cout<<" Controller update "<<boost::this_thread::get_id()<<std::endl;
 
     device_->runDevice();
 

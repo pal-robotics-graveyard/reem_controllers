@@ -42,16 +42,31 @@
 #include <dynamic-graph/factory.h>
 #include <dynamic-graph/command-setter.h>
 #include <dynamic-graph/debug.h>
-//#include <sot/core/debug.hh>
 #include "soth/debug.hpp"
 #include <sot/core/exception-factory.hh>
 #include <dynamic-graph/all-commands.h>
 
 #include <dynamic-graph/all-commands.h>
-//#include "sot/core/api.hh"
 
-//#include <time.h>
-//#include <ctime>
+// Activate some functions to use for timing
+//#define TIMING
+#ifdef TIMING
+#include <time.h>
+#include <ctime>
+struct timeval start;
+struct timeval end;
+void start_timing(){
+    gettimeofday(&start, NULL);
+}
+void end_timing(){
+    gettimeofday(&end, NULL);
+    long elapsed = (end.tv_usec-start.tv_usec);
+    std::cout<<(1.0/1000000) * elapsed<<std::endl;
+}
+#endif
+
+// Activate the real time with condition variables
+//#define COND_VAR_VER
 
 using sot_reem_controller::SotReemDevice;
 using dynamicgraph::sot::ExceptionFactory;
@@ -60,9 +75,12 @@ const std::string SotReemDevice::CLASS_NAME = "SotReemDevice";
 
 SotReemDevice::SotReemDevice(const std::string& entityName):
     dynamicgraph::sot::Device(entityName),
-    status_(false)
-
-{}
+    status_(false),
+    oldControlSOUT("SotReemDevice("+entityName+")::output(vector)::oldControl")
+{
+    // Register signals into the entity.
+    signalRegistration (oldControlSOUT);
+}
 
 SotReemDevice::~SotReemDevice(){}
 
@@ -104,12 +122,11 @@ void SotReemDevice::startThread(const ros::Time& time, const ros::Duration& peri
 }
 
 void SotReemDevice::stopThread(){
-    thread_.join(); //TODO: it is correct? Or I need to interrupt the thread
+    thread_.join(); //TODO: it is correct? Or Should I interrupt the thread?
 }
 
 ml::Vector SotReemDevice::getState(){
     boost::unique_lock<mutex_t> guard(mtx_state_);
-    //std::cout<<" getState "<<boost::this_thread::get_id()<<std::endl;
     ml::Vector outputState;
     outputState.resize(shared_state_.size()-6);
     for (unsigned int i = 0; i<outputState.size(); i++){
@@ -120,17 +137,14 @@ ml::Vector SotReemDevice::getState(){
 
 void SotReemDevice::setState(ml::Vector state){
     boost::unique_lock<mutex_t> guard(mtx_state_);
-    //std::cout<<" setState "<<boost::this_thread::get_id()<<std::endl;
     shared_state_ = state;
 }
 
 void SotReemDevice::pauseDevice(const ros::Duration& period) {
 #ifdef COND_VAR_VER
     boost::unique_lock<mutex_t> guard(mtx_run_);
-    //std::cout<<" WaitSot START "<<boost::this_thread::get_id()<<" status_ "<<GetStatus()<<std::endl;
     while(!getDeviceStatus())
     {
-        //std::cout<<" WaitSot WHILE "<<boost::this_thread::get_id()<<std::endl;
         cond_.wait(guard);
     }
 #else
@@ -140,18 +154,16 @@ void SotReemDevice::pauseDevice(const ros::Duration& period) {
 #endif
     // Integrate control
     try{
-        //struct timeval start;
-        //struct timeval end;
-        //int count = 0;
-        //gettimeofday(&start, NULL);
-        //do{
-        //std::cout<<" WaitSot INCREMENT "<<boost::this_thread::get_id()<<" status_ "<<GetStatus()<<std::endl;
-        increment(0.001); //TODO: Now dt is hardcoded...
-        //count ++;
-        //}while(count<10);
-        //gettimeofday(&end, NULL);
-        //long elapsed = (end.tv_usec-start.tv_usec);
-        //std::cout<<(1.0/1000000) * elapsed<<std::endl;
+
+        oldControl_ = controlSIN.accessCopy();
+        oldControlSOUT.setConstant(oldControl_);
+        oldControlSOUT.setTime(controlSIN.getTime());
+
+        //std::cout<<"oldControl_ : "<<oldControl_<<" time: "<<controlSIN.getTime()<<std::endl;
+        //getchar();
+
+        increment(0.001); // TODO: Now dt is hardcoded...
+
         setState(state_);
     }
     catch (...)

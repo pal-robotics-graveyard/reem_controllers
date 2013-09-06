@@ -15,6 +15,7 @@
   <rosdep name="dynamic-graph-python"/>
   <rosdep name="sot-core"/>
   <rosdep name="sot-dynamic"/>
+  <rosdep name="sot-dyninv"/>
   
   <depend package="controller_interface"/>
   <depend package="controllers_msgs"/>

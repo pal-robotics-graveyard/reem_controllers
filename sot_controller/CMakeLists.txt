@@ -30,6 +30,7 @@ ADD_REQUIRED_DEPENDENCY("jrl-mal")
 ADD_REQUIRED_DEPENDENCY("dynamic-graph")
 ADD_REQUIRED_DEPENDENCY("dynamic-graph-python")
 ADD_REQUIRED_DEPENDENCY("sot-core")
+ADD_REQUIRED_DEPENDENCY("sot-dyninv")
 
 # This is required by the Python prologue.
 ADD_REQUIRED_DEPENDENCY("sot-dynamic")
@@ -52,8 +53,9 @@ rosbuild_add_library(${PROJECT_NAME} src/sot_reem_controller.cpp src/sot_reem_de
 target_link_libraries(sot_controller dynamic-graph)
 target_link_libraries(sot_controller sot-core)
 target_link_libraries(sot_controller dynamic-graph-python)
+
 PKG_CONFIG_USE_DEPENDENCY(sot_controller "dynamic-graph")
 PKG_CONFIG_USE_DEPENDENCY(sot_controller "sot-core")
 PKG_CONFIG_USE_DEPENDENCY(sot_controller "dynamic-graph-python")
-
+PKG_CONFIG_USE_DEPENDENCY(sot_controller "sot-dyninv")
 
