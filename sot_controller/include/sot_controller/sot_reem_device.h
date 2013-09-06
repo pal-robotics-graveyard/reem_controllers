@@ -97,11 +97,8 @@ public:
     /// \brief Stop the thread.
     void stopThread();
 
-    /// \brief Get the old control value.
-    ml::Vector& getOldControl(ml::Vector& oldControl);
-
     /// \brief Previous signal control value.
-    dynamicgraph::Signal<ml::Vector,int> oldControlSOUT;
+    dynamicgraph::Signal<ml::Vector,int> controlSOUT;
 
     /// \brief Get the robot state.
     ml::Vector getState();
@@ -129,8 +126,8 @@ private:
     /// \brief Time period.
     ros::Duration period_;
 
-    /// \brief Previous control value.
-    ml::Vector oldControl_;
+    /// \brief Control value used to compute the new state.
+    ml::Vector control_;
 
     /// \brief Default offset.
     static const unsigned int offset_ = 6;

@@ -77,10 +77,10 @@ SotReemDevice::SotReemDevice(const std::string& entityName):
     dynamicgraph::sot::Device(entityName),
     status_(false),
     period_(0.001),
-    oldControlSOUT("SotReemDevice("+entityName+")::output(vector)::oldControl")
+    controlSOUT("SotReemDevice("+entityName+")::output(vector)::controlOut")
 {
     // Register signals into the entity.
-    signalRegistration (oldControlSOUT);
+    signalRegistration (controlSOUT);
 }
 
 SotReemDevice::~SotReemDevice(){}
@@ -156,14 +156,11 @@ void SotReemDevice::pauseDevice() {
     // Integrate control
     try{
 
-        oldControl_ = controlSIN.accessCopy();
-        oldControlSOUT.setConstant(oldControl_);
-        oldControlSOUT.setTime(controlSIN.getTime());
-
-        //std::cout<<"oldControl_ : "<<oldControl_<<" time: "<<controlSIN.getTime()<<std::endl;
-        //getchar();
-
         increment(period_.toSec()); // TODO: Now dt is hardcoded...
+
+        control_ = controlSIN.accessCopy();
+        controlSOUT.setConstant(control_);
+        controlSOUT.setTime(controlSIN.getTime());
 
         setState(state_);
     }
