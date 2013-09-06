@@ -37,8 +37,8 @@
  *   inspired on the sot_pr2 class written by Thomas Moulard, available here https://github.com/laas/sot_pr2.
  */
 
-# ifndef SOT_REEM_DEVICE_H
-# define SOT_REEM_DEVICE_H
+# ifndef SOT_DEVICE_H
+# define SOT_DEVICE_H
 
 # include <sot/core/device.hh>
 # include <forward_command_controller/forward_command_controller.h>
@@ -48,25 +48,25 @@
 //# define COND_VAR_VER
 
 /**
- * \brief Interface controller for the stack of tasks. It is wrapped by sot_reem_controller.
+ * \brief Interface controller for the stack of tasks. It is wrapped by sot_controller.
  */
 
 typedef std::vector<hardware_interface::JointHandle> joints_t;
 typedef boost::mutex mutex_t;
 
 
-namespace sot_reem_controller
+namespace sot_controller
 {
 
-class SotReemDevice : public dynamicgraph::sot::Device
+class SotDevice : public dynamicgraph::sot::Device
 {
     DYNAMIC_GRAPH_ENTITY_DECL();
 public:
     /// \brief Default constructor
     ///
     /// \param entityName entity name in the dynamic-graph pool
-    SotReemDevice(const std::string& entityName);
-    ~SotReemDevice();
+    SotDevice(const std::string& entityName);
+    ~SotDevice();
 
     /// \name Inherited control methods.
     /// \{

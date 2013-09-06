@@ -49,7 +49,7 @@ LINK_DIRECTORIES(${PYTHON_LIBRARY_DIRS})
 #rosbuild_add_executable(example examples/example.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
 
-rosbuild_add_library(${PROJECT_NAME} src/sot_reem_controller.cpp src/sot_reem_device.cpp include/sot_controller/sot_reem_controller.h include/sot_controller/sot_reem_device.h)
+rosbuild_add_library(${PROJECT_NAME} src/sot_controller.cpp src/sot_device.cpp include/sot_controller/sot_controller.h include/sot_controller/sot_device.h)
 target_link_libraries(sot_controller dynamic-graph)
 target_link_libraries(sot_controller sot-core)
 target_link_libraries(sot_controller dynamic-graph-python)

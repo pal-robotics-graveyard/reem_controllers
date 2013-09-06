@@ -37,7 +37,7 @@
  *   inspired on the sot_pr2 class written by Thomas Moulard, available here https://github.com/laas/sot_pr2.
  */
 
-# include "sot_controller/sot_reem_device.h"
+# include "sot_controller/sot_device.h"
 
 #include <dynamic-graph/factory.h>
 #include <dynamic-graph/command-setter.h>
@@ -68,29 +68,29 @@ void end_timing(){
 // Activate the threading with condition variables
 //#define COND_VAR_VER
 
-using sot_reem_controller::SotReemDevice;
+using sot_controller::SotDevice;
 using dynamicgraph::sot::ExceptionFactory;
 
-const std::string SotReemDevice::CLASS_NAME = "SotReemDevice";
+const std::string SotDevice::CLASS_NAME = "SotDevice";
 
-SotReemDevice::SotReemDevice(const std::string& entityName):
+SotDevice::SotDevice(const std::string& entityName):
     dynamicgraph::sot::Device(entityName),
     status_(false),
     period_(0.001),
-    controlSOUT("SotReemDevice("+entityName+")::output(vector)::controlOut")
+    controlSOUT("SotDevice("+entityName+")::output(vector)::controlOut")
 {
     // Register signals into the entity.
     signalRegistration (controlSOUT);
 }
 
-SotReemDevice::~SotReemDevice(){}
+SotDevice::~SotDevice(){}
 
-bool SotReemDevice::init()
+bool SotDevice::init()
 {
     return true;
 }
 
-void SotReemDevice::starting(joints_t& joints_){
+void SotDevice::starting(joints_t& joints_){
 
     // Read state from motor command
     int t = stateSOUT.getTime () + 1;
@@ -118,15 +118,15 @@ void SotReemDevice::starting(joints_t& joints_){
 
 }
 
-void SotReemDevice::startThread(){
-    thread_ = boost::thread(&SotReemDevice::update, this);
+void SotDevice::startThread(){
+    thread_ = boost::thread(&SotDevice::update, this);
 }
 
-void SotReemDevice::stopThread(){
+void SotDevice::stopThread(){
     thread_.join(); //TODO: it is correct? Or Should I interrupt the thread?
 }
 
-ml::Vector SotReemDevice::getState(){
+ml::Vector SotDevice::getState(){
     boost::unique_lock<mutex_t> guard(mtx_state_);
     ml::Vector outputState;
     outputState.resize(shared_state_.size()-6);
@@ -136,12 +136,12 @@ ml::Vector SotReemDevice::getState(){
     return outputState;
 }
 
-void SotReemDevice::setState(ml::Vector state){
+void SotDevice::setState(ml::Vector state){
     boost::unique_lock<mutex_t> guard(mtx_state_);
     shared_state_ = state;
 }
 
-void SotReemDevice::pauseDevice() {
+void SotDevice::pauseDevice() {
 #ifdef COND_VAR_VER
     boost::unique_lock<mutex_t> guard(mtx_run_);
     while(!getDeviceStatus())
@@ -168,7 +168,7 @@ void SotReemDevice::pauseDevice() {
     {}
 }
 
-void SotReemDevice::runDevice(const ros::Duration& period) {
+void SotDevice::runDevice(const ros::Duration& period) {
 #ifdef COND_VAR_VER
     {
         boost::unique_lock<mutex_t> guard(mtx_run_);
@@ -183,17 +183,17 @@ void SotReemDevice::runDevice(const ros::Duration& period) {
 #endif
 }
 
-bool SotReemDevice::getDeviceStatus() {
+bool SotDevice::getDeviceStatus() {
     boost::lock_guard<mutex_t> guard(mtx_status_);
     return status_;
 }
 
-void SotReemDevice::setDeviceStatus(bool status) {
+void SotDevice::setDeviceStatus(bool status) {
     boost::lock_guard<mutex_t> guard(mtx_status_);
     status_ = status;
 }
 
-void SotReemDevice::update(){
+void SotDevice::update(){
     while(true){
         pauseDevice();
         setDeviceStatus(false);

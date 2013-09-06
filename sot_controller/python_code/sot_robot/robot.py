@@ -18,9 +18,9 @@
 from humanoid_robot import AbstractHumanoidRobot
 from dynamic_graph.ros import RosRobotModel
 
-class Reem(AbstractHumanoidRobot):
+class RobotBuilder(AbstractHumanoidRobot):
     """
-    This class instanciates a Reem robot.
+    This class instanciates a robot.
     """
 
     #OperationalPoints = ['right-wrist','left-wrist','waist','right-ankle','left-ankle']
@@ -40,4 +40,4 @@ class Reem(AbstractHumanoidRobot):
         self.dimension = self.dynamic.getDimension()
         self.initializeRobot()
 
-__all__ = ["Reem"]
+__all__ = ["RobotBuilder"]

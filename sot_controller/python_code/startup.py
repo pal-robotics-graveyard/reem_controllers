@@ -1,5 +1,5 @@
 # Create the reem robot model and a solver for the stack of tasks
-from sot_reem.prologue import robot, solver
+from sot_robot.prologue import robot, solver
 
 # Useful modules to interact with the stack of tasks
 # They should be shared between the demos...

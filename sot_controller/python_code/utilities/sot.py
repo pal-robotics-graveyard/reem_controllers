@@ -1,4 +1,4 @@
-from sot_reem.prologue import solver
+from sot_robot.prologue import solver
 
 def push(task):
     if isinstance(task,str): taskName=task

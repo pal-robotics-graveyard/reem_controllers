@@ -15,16 +15,15 @@
 # received a copy of the GNU Lesser General Public License along with
 # dynamic-graph. If not, see <http://www.gnu.org/licenses/>.
 
-print("sot_reem")
-print("Compiled for robot REEM.")
+print("Creating the robot and the solver...")
 
 from dynamic_graph import plug
-from robot import Reem
+from robot import RobotBuilder
 from dynamic_graph.entity import PyEntityFactoryClass
 
-Device = PyEntityFactoryClass('SotReemDevice')
+Device = PyEntityFactoryClass('SotDevice')
 
-robot = Reem(name = 'robot', device = Device('robot_device'))
+robot = RobotBuilder(name = 'robot', device = Device('robot_device'))
 
 # FIXME: this must be set so that the graph can be evaluated.
 robot.device.zmp.value = (0., 0., 0.)
@@ -40,7 +39,7 @@ robot.device.control.unplug()
 plug(solver.control,robot.device.control)
 plug(robot.device.state,robot.dynamic.position)
 
-print("Prologue ran successfully.")
+print("...done!")
 
 # Make sure only robot and solver are visible from the outside.
 __all__ = ["robot", "solver"]

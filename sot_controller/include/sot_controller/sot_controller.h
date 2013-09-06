@@ -37,36 +37,36 @@
  *   inspired on the sot_pr2 class written by Thomas Moulard, available here https://github.com/laas/sot_pr2.
  */
 
-# ifndef SOT_REEM_CONTROLLER_H
-# define SOT_REEM_CONTROLLER_H
+# ifndef SOT_CONTROLLER_H
+# define SOT_CONTROLLER_H
 
 # include <forward_command_controller/forward_command_controller.h>
 # include <dynamic_graph_bridge/ros_interpreter.hh>
-# include "sot_controller/sot_reem_device.h"
+# include "sot_controller/sot_device.h"
 # include <boost/shared_ptr.hpp>
 
 /**
- * \brief Position controller for the REEM robot. It is wrapping sot_reem_device.
+ * \brief Position controller for the REEM robot. It is wrapping sot_device.
  *
  * This class works as interface for ros_control.
  *
  */
 
-namespace sot_reem_controller
+namespace sot_controller
 {
 
-class SotReemController : public controller_interface::Controller<hardware_interface::PositionJointInterface>
+class SotController : public controller_interface::Controller<hardware_interface::PositionJointInterface>
 {
 
 private:
     /// Embedded python interpreter accessible via a ROS service.
     boost::shared_ptr<dynamicgraph::Interpreter> interpreter_;
     /// Pointer to Entity StackOfTasks
-    SotReemDevice* device_;
+    SotDevice* device_;
 
 public:
-    SotReemController();
-    ~SotReemController();
+    SotController();
+    ~SotController();
 
     void runPython(std::ostream& file, const std::string& command, dynamicgraph::Interpreter& interpreter);
 

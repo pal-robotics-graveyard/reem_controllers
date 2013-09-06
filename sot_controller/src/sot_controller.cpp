@@ -37,7 +37,7 @@
  *   inspired on the sot_pr2 class written by Thomas Moulard, available here https://github.com/laas/sot_pr2.
  */
 
-# include <sot_controller/sot_reem_controller.h>
+# include <sot_controller/sot_controller.h>
 # include <pluginlib/class_list_macros.h>
 
 # include <strings.h>
@@ -48,15 +48,15 @@
 #include <boost/thread/thread.hpp>
 #include <boost/thread/condition.hpp>
 
-namespace sot_reem_controller {
+namespace sot_controller {
 
-const std::string SotReemController::LOG_PYTHON="/tmp/sot_reem_controller.out";
+const std::string SotController::LOG_PYTHON="/tmp/sot_controller.out";
 
-SotReemController::SotReemController():
+SotController::SotController():
     interpreter_ (),
-    device_ (new SotReemDevice("robot_device")) {}
+    device_ (new SotDevice("robot_device")) {}
 
-SotReemController::~SotReemController() {
+SotController::~SotController() {
 
     device_->stopThread();
 
@@ -65,7 +65,7 @@ SotReemController::~SotReemController() {
     }
 }
 
-void SotReemController::runPython(std::ostream& file, const std::string& command, dynamicgraph::Interpreter& interpreter)
+void SotController::runPython(std::ostream& file, const std::string& command, dynamicgraph::Interpreter& interpreter)
 {
     file << ">>> " << command << std::endl;
     std::string lerr(""),lout(""),lres("");
@@ -86,7 +86,7 @@ void SotReemController::runPython(std::ostream& file, const std::string& command
     }
 }
 
-bool SotReemController::init(hardware_interface::PositionJointInterface *robot, ros::NodeHandle& root_nh, ros::NodeHandle& controller_nh)
+bool SotController::init(hardware_interface::PositionJointInterface *robot, ros::NodeHandle& root_nh, ros::NodeHandle& controller_nh)
 {
 
     interpreter_.reset(new dynamicgraph::Interpreter(controller_nh));
@@ -105,7 +105,7 @@ bool SotReemController::init(hardware_interface::PositionJointInterface *robot, 
                    "    path.append(p)", *interpreter_);
         runPython (aof, "path.extend(sys.path)", *interpreter_);
         runPython (aof, "sys.path = path", *interpreter_);
-        runPython (aof, "sys.argv = 'reem'", *interpreter_);
+        runPython (aof, "sys.argv = 'sot_controller'", *interpreter_);
         runPython(aof,"import startup", *interpreter_);
 
         aof.close();
@@ -168,13 +168,13 @@ bool SotReemController::init(hardware_interface::PositionJointInterface *robot, 
     // Member list of joint handles is updated only once all resources have been claimed
     joints_ = joints_tmp;
 
-    // Call init inside sot_reem_device
+    // Call init inside sot_device
     device_->init();
 
     return true;
 }
 
-void SotReemController::starting(const ros::Time& time) {
+void SotController::starting(const ros::Time& time) {
 
     try{
         device_->starting(joints_);
@@ -188,7 +188,7 @@ void SotReemController::starting(const ros::Time& time) {
 
 }
 
-void SotReemController::update(const ros::Time& time, const ros::Duration& period) {
+void SotController::update(const ros::Time& time, const ros::Duration& period) {
 
     device_->runDevice(period);
 
@@ -201,7 +201,7 @@ void SotReemController::update(const ros::Time& time, const ros::Duration& perio
 
 }// namespace
 
-PLUGINLIB_DECLARE_CLASS(sot_reem_controller,
-                        SotReemController,
-                        sot_reem_controller::SotReemController,
+PLUGINLIB_DECLARE_CLASS(sot_controller,
+                        SotController,
+                        sot_controller::SotController,
                         controller_interface::ControllerBase)
