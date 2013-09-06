@@ -177,21 +177,20 @@ bool SotReemController::init(hardware_interface::PositionJointInterface *robot, 
 void SotReemController::starting(const ros::Time& time) {
 
     try{
-        device_->starting(time,joints_);
+        device_->starting(joints_);
     }
     catch(const std::range_error& e)
     {
         ROS_ERROR_STREAM(e.what());
     }
 
-    ros::Duration period;
-    device_->startThread(time,period); // TODO: Should be moved in init
+    device_->startThread(); // TODO: Should be moved in init
 
 }
 
 void SotReemController::update(const ros::Time& time, const ros::Duration& period) {
 
-    device_->runDevice();
+    device_->runDevice(period);
 
     ml::Vector state = device_->getState();
     for (unsigned int i = 0; i<joints_.size(); i++)

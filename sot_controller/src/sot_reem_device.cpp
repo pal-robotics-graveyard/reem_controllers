@@ -65,7 +65,7 @@ void end_timing(){
 }
 #endif
 
-// Activate the real time with condition variables
+// Activate the threading with condition variables
 //#define COND_VAR_VER
 
 using sot_reem_controller::SotReemDevice;
@@ -76,6 +76,7 @@ const std::string SotReemDevice::CLASS_NAME = "SotReemDevice";
 SotReemDevice::SotReemDevice(const std::string& entityName):
     dynamicgraph::sot::Device(entityName),
     status_(false),
+    period_(0.001),
     oldControlSOUT("SotReemDevice("+entityName+")::output(vector)::oldControl")
 {
     // Register signals into the entity.
@@ -89,7 +90,7 @@ bool SotReemDevice::init()
     return true;
 }
 
-void SotReemDevice::starting(const ros::Time& time,joints_t& joints_){
+void SotReemDevice::starting(joints_t& joints_){
 
     // Read state from motor command
     int t = stateSOUT.getTime () + 1;
@@ -117,8 +118,8 @@ void SotReemDevice::starting(const ros::Time& time,joints_t& joints_){
 
 }
 
-void SotReemDevice::startThread(const ros::Time& time, const ros::Duration& period){
-    thread_ = boost::thread(&SotReemDevice::update, this, time, period);
+void SotReemDevice::startThread(){
+    thread_ = boost::thread(&SotReemDevice::update, this);
 }
 
 void SotReemDevice::stopThread(){
@@ -140,7 +141,7 @@ void SotReemDevice::setState(ml::Vector state){
     shared_state_ = state;
 }
 
-void SotReemDevice::pauseDevice(const ros::Duration& period) {
+void SotReemDevice::pauseDevice() {
 #ifdef COND_VAR_VER
     boost::unique_lock<mutex_t> guard(mtx_run_);
     while(!getDeviceStatus())
@@ -162,7 +163,7 @@ void SotReemDevice::pauseDevice(const ros::Duration& period) {
         //std::cout<<"oldControl_ : "<<oldControl_<<" time: "<<controlSIN.getTime()<<std::endl;
         //getchar();
 
-        increment(0.001); // TODO: Now dt is hardcoded...
+        increment(period_.toSec()); // TODO: Now dt is hardcoded...
 
         setState(state_);
     }
@@ -170,16 +171,18 @@ void SotReemDevice::pauseDevice(const ros::Duration& period) {
     {}
 }
 
-void SotReemDevice::runDevice() {
+void SotReemDevice::runDevice(const ros::Duration& period) {
 #ifdef COND_VAR_VER
     {
         boost::unique_lock<mutex_t> guard(mtx_run_);
+        period_ = period;         //Set the internal period
         setDeviceStatus(true);
     }
     cond_.notify_one();
 #else
-        boost::unique_lock<mutex_t> guard(mtx_run_);
-        setDeviceStatus(true);
+    boost::unique_lock<mutex_t> guard(mtx_run_);
+    period_ = period;         //Set the internal period
+    setDeviceStatus(true);
 #endif
 }
 
@@ -193,9 +196,9 @@ void SotReemDevice::setDeviceStatus(bool status) {
     status_ = status;
 }
 
-void SotReemDevice::update(const ros::Time& time, const ros::Duration& period){
+void SotReemDevice::update(){
     while(true){
-        pauseDevice(period);
+        pauseDevice();
         setDeviceStatus(false);
     }
 }

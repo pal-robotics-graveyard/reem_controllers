@@ -75,15 +75,15 @@ public:
     bool init();
 
     /// \brief Called when plug-in is started.
-    void starting(const ros::Time& time,joints_t& joints_);
+    void starting(joints_t& joints_);
 
     /// \}
 
     /// \brief Trigger the device computation.
-    void runDevice();
+    void runDevice(const ros::Duration& period);
 
     /// \brief Wait for the trigger.
-    void pauseDevice(const ros::Duration& period);
+    void pauseDevice();
 
     /// \brief Get the execution state of the device.
     bool getDeviceStatus();
@@ -92,7 +92,7 @@ public:
     void setDeviceStatus(bool status);
 
     /// \brief Start the thread.
-    void startThread(const ros::Time& time, const ros::Duration& period);
+    void startThread();
 
     /// \brief Stop the thread.
     void stopThread();
@@ -126,6 +126,9 @@ private:
     /// \brief Object thread.
     boost::thread thread_;
 
+    /// \brief Time period.
+    ros::Duration period_;
+
     /// \brief Previous control value.
     ml::Vector oldControl_;
 
@@ -133,7 +136,7 @@ private:
     static const unsigned int offset_ = 6;
 
     /// \brief Called at each control loop.
-    void update(const ros::Time& time, const ros::Duration& period);
+    void update();
 
 };
 
