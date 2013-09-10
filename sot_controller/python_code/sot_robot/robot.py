@@ -15,8 +15,8 @@
 # received a copy of the GNU Lesser General Public License along with
 # dynamic-graph. If not, see <http://www.gnu.org/licenses/>.
 
-from humanoid_robot import AbstractHumanoidRobot
-from dynamic_graph.ros import RosRobotModel
+from dynamic_graph.sot.dynamics.ros_humanoid_robot import AbstractHumanoidRobot
+from dynamic_graph.ros.ros_sot_robot_model import RosSotRobotModel
 
 class RobotBuilder(AbstractHumanoidRobot):
     """
@@ -34,7 +34,7 @@ class RobotBuilder(AbstractHumanoidRobot):
     def __init__(self, name, device = None, tracer = None):
         AbstractHumanoidRobot.__init__ (self, name, tracer)
         self.device = device
-        self.dynamic = RosRobotModel("{0}_dynamic".format(name))
+        self.dynamic = RosSotRobotModel("{0}_dynamic".format(name))
         self.dynamic.loadFromParameterServer()
         self.halfSitting = self.dynamic.curConf()
         self.dimension = self.dynamic.getDimension()

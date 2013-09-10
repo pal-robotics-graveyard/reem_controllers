@@ -10,7 +10,6 @@ from dynamic_graph.sot.core.meta_tasks_kine import *
 from dynamic_graph.sot.core.meta_task_posture import MetaTaskKinePosture
 from dynamic_graph.sot.core.matrix_util import matrixToTuple, vectorToTuple,rotate, matrixToRPY
 from dynamic_graph.sot.core.meta_task_visual_point import MetaTaskVisualPoint
-from dynamic_graph.sot.core.meta_task_joint_weights import MetaTasJointkWeights
 
 # User defined modules
 from utilities.kinematics import *
