@@ -1,6 +1,0 @@
-<launch>
-
-<!-- launch the demo file -->
-<node name="run_command" pkg="dynamic_graph_bridge" type="run_command" ns="sot_controller" args="$(find sot_controller)/python_code/launch_demo.py" output="screen"/>
-
-</launch>
