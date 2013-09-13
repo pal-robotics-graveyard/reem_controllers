@@ -122,9 +122,8 @@ bool SotController::init(hardware_interface::PositionJointInterface *robot, ros:
     // Get joint names from the parameter server
     using namespace XmlRpc;
     XmlRpcValue joint_names;
-    ros::NodeHandle nh;
     std::string paramName = "jrl_map";
-    if (!nh.getParam(paramName, joint_names)) //TODO: root_nh or a new global named node?
+    if (!controller_nh.getParam(paramName, joint_names))
     {
         ROS_ERROR_STREAM("No joints given (expected namespace: /" + paramName + ").");
         return false;
@@ -144,7 +143,7 @@ bool SotController::init(hardware_interface::PositionJointInterface *robot, ros:
         XmlRpcValue &name_value = joint_names[i];
         if (name_value.getType() != XmlRpcValue::TypeString)
         {
-            ROS_ERROR_STREAM("Array of joint names should contain all strings (namespace:" << nh.getNamespace() << ").");
+            ROS_ERROR_STREAM("Array of joint names should contain all strings (namespace:" << controller_nh.getNamespace() << ").");
             return false;
         }
         const std::string joint_name = static_cast<std::string>(name_value);

@@ -17,6 +17,7 @@
 
 from dynamic_graph.sot.dynamics.ros_humanoid_robot import AbstractHumanoidRobot
 from dynamic_graph.ros.ros_sot_robot_model import RosSotRobotModel
+import sys
 
 class RobotBuilder(AbstractHumanoidRobot):
     """
@@ -35,6 +36,7 @@ class RobotBuilder(AbstractHumanoidRobot):
         AbstractHumanoidRobot.__init__ (self, name, tracer)
         self.device = device
         self.dynamic = RosSotRobotModel("{0}_dynamic".format(name))
+        self.dynamic.setNamespace(sys.argv)
         self.dynamic.loadFromParameterServer()
         self.halfSitting = self.dynamic.curConf()
         self.dimension = self.dynamic.getDimension()
