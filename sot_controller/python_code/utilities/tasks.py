@@ -8,7 +8,7 @@ from dynamic_graph.sot.core.meta_tasks import setGain
 from dynamic_graph.sot.core.meta_tasks_kine import *
 from dynamic_graph.sot.core.meta_task_posture import MetaTaskKinePosture
 from dynamic_graph.sot.core.meta_task_visual_point import MetaTaskVisualPoint
-from dynamic_graph.sot.core.meta_task_joint_weights import MetaTaskJointWeights
+#from dynamic_graph.sot.core.meta_task_joint_weights import MetaTaskJointWeights
 
 from sot_robot.prologue import robot, solver
 from dynamic_graph.sot.dyninv import *
@@ -47,11 +47,11 @@ def createInequalityTask(taskName, jointName, selectionMask='000111', positionVe
     taskIneq.task.dt.value = 0.001
     taskIneq.task.controlGain.value = 0.9
     return taskIneq
-
+"""
 def createWeightsTask(diag = None):
     taskWeights = MetaTaskJointWeights('jointWeights',robot,diag)
     return taskWeights
-
+"""
 def createGazeTask(jointName):
     taskGaze = MetaTaskVisualPoint('gaze',robot.dynamic,jointName,jointName)
     taskGaze.featureDes.xy.value = (0,0)
