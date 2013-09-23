@@ -1,4 +1,7 @@
-from startup import *
+'''
+@author: Gennaro Raiola, Karsten Knese
+'''
+from sot_ros_api import *
 from dynamic_graph.sot.core.meta_task_joint_weights import MetaTaskJointWeights
 
 rospy.init_node('tf_reem')
@@ -10,23 +13,10 @@ def transformation(frame_1,frame_2):
     return {'quat':quat,'xyz':xyz}
 
 xyz = numpy.array([0,-100,1.483])
-taskGAZE = MetaTaskVisualPoint('gz',robot.dynamic,'camera_joint','camera_joint')
-taskGAZE.gain.setConstant(1000)
-taskGAZE.featureDes.xy.value = (0,0)
 
-robot.dynamic.upperJl.recompute(0)
-robot.dynamic.lowerJl.recompute(0)
-taskJL = TaskJointLimits('taskJL')
-plug(robot.dynamic.position,taskJL.position)
-taskJL.controlGain.value = 1
-taskJL.referenceInf.value = robot.dynamic.lowerJl.value
-taskJL.referenceSup.value = robot.dynamic.upperJl.value
-taskJL.dt.value = 0.001
-taskJL.selec.value = toFlags(range(6,robot.dimension))
-
-taskCONTACT = MetaTaskKine6d('contact',robot.dynamic,'base_joint','base_joint')
-taskCONTACT.feature.frame('desired')
-taskCONTACT.gain.setConstant(1000)
+taskBASE = createEqualityTask('baseContact','base_joint',1000)
+taskGAZE = createGazeTask('camera_joint')
+taskJL = createJointLimitsTask(1000, 0.001)
 
 weights_diag_flag = 1
 if (weights_diag_flag):
@@ -34,14 +24,14 @@ if (weights_diag_flag):
 else:
     diag = None
 
-taskWEIGHTS = MetaTaskJointWeights('weights',robot,diag)
+taskWEIGHTS = createWeightsTask(diag)
 
 push(taskJL)
-solver.addContact(taskCONTACT)
+solver.addContact(taskBASE)
 push(taskGAZE)
 push(taskWEIGHTS)
 
-taskGAZE.goto3D((xyz[0],xyz[1],xyz[2]))
+taskGAZE.goto3D((xyz[0],xyz[1],xyz[2]),1000)
 
 camera_base = transformation("/head_1_link","/base_link")
 camera_base_rpy = mat2rpy(quat2mat(camera_base["quat"]))

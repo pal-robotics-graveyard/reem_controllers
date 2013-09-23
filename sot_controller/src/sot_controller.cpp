@@ -106,7 +106,7 @@ bool SotController::init(hardware_interface::PositionJointInterface *robot, ros:
         runPython (aof, "path.extend(sys.path)", *interpreter_);
         runPython (aof, "sys.path = path", *interpreter_);
         runPython (aof, "sys.argv = 'sot_controller'", *interpreter_);
-        runPython(aof,"import startup", *interpreter_);
+        runPython(aof,"from sot_ros_api import *", *interpreter_);
 
         aof.close();
 
