@@ -36,9 +36,8 @@ def rotz(angle):
     m = numpy.matrix([[numpy.cos(angle),-numpy.sin(angle),0],[numpy.sin(angle),numpy.cos(angle),0],[0,0,1]])
     return m
 
-def goalDef(xyz,quat):
+def goalDef(xyz = [0,0,0],quat=[0,0,0,1]):
     goal = numpy.matrix([[0 , 0, 0, xyz[0]], [0,  0, 0, xyz[1]], [0, 0, 0, xyz[2]], [0, 0, 0, 1]])
     goal_r = quat2mat(quat)
     goal[0:3,0:3] = goal_r
     return goal
-
