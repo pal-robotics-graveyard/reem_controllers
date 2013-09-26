@@ -122,7 +122,7 @@ bool SotController::init(hardware_interface::PositionJointInterface *robot, ros:
     // Get joint names from the parameter server
     using namespace XmlRpc;
     XmlRpcValue joint_names;
-    std::string paramName = "jrl_map";
+    std::string paramName = "jrl_joints_list";
     if (!controller_nh.getParam(paramName, joint_names))
     {
         ROS_ERROR_STREAM("No joints given (expected namespace: /" + paramName + ").");
