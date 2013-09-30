@@ -39,8 +39,6 @@ class RobotBuilder(AbstractHumanoidRobot):
         self.dynamic.setNamespace(sys.argv)
         self.dynamic.loadFromParameterServer()
         self.halfSitting = self.dynamic.curConf()
-        #Set an offset for the free flyer, in this way we are able to reach the feets with the hand
-        #self.halfSitting = (0.0, 0.0, 0.739, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         self.dimension = self.dynamic.getDimension()
         self.initializeRobot()
 

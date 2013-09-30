@@ -2,7 +2,6 @@
 @author: Gennaro Raiola, Karsten Knese
 '''
 from sot_ros_api import *
-from dynamic_graph.sot.core.meta_task_joint_weights import MetaTaskJointWeights
 
 rospy.init_node('tf_reem')
 listener = tf.TransformListener()

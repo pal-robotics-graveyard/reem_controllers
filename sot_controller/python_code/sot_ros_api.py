@@ -5,6 +5,7 @@ from sot_robot.prologue import robot, solver
 # They should be shared between the demos...
 from dynamic_graph.sot.dyninv import *
 from dynamic_graph.sot.core.matrix_util import matrixToTuple, vectorToTuple,rotate, matrixToRPY
+from dynamic_graph import writeGraph
 
 # User defined modules
 from utilities.kinematics import *
@@ -20,3 +21,11 @@ import numpy
 import roslib; roslib.load_manifest('sot_controller')
 import tf
 import rospy
+
+"""
+To show the dynamic graph:
+
+python: writeGraph ("/tmp/graph.dot")
+
+shell: dot -o graph.pdf -Tpdf graph.dot
+"""

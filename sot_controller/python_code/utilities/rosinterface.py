@@ -25,7 +25,7 @@ def createRosExport(type, exportSignal, topic):
     ros.rosExport.add(type, rosExportSignalIntern, topic)
     # cannot be initialized empty due to serialization errors
     if (type == 'Vector'):
-        ros.rosExport.rosExportSignalIntern = (100000,) 
+        ros.rosExport.rosExportSignalIntern = (100000,)
     plug(ros.rosExport.signal(rosExportSignalIntern), exportSignal)
 
 # Import in ROS

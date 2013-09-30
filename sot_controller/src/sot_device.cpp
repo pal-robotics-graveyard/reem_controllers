@@ -156,7 +156,7 @@ void SotDevice::pauseDevice() {
     // Integrate control
     try{
 
-        increment(period_.toSec()); // TODO: Now dt is hardcoded...
+        increment(period_.toSec());
 
         control_ = controlSIN.accessCopy();
         controlSOUT.setConstant(control_);

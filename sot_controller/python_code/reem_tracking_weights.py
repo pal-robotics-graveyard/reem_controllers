@@ -7,8 +7,6 @@ from sot_ros_api import *
 from rospy_tutorials.msg import Floats
 from rospy.numpy_msg import numpy_msg
 from geometry_msgs.msg import PoseStamped, PointStamped
-from dynamic_graph.sot.core.meta_task_joint_weights import MetaTaskJointWeights
-
 
 def callback_right_hand(data):
     quat = numpy.array([data.pose.orientation.x , data.pose.orientation.y , data.pose.orientation.z , data.pose.orientation.w])
