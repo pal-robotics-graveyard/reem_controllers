@@ -39,7 +39,6 @@ def createEqualityTask(taskName, jointName, gain = None):
 def createInequalityTask(taskName, jointName, selectionMask='000111', positionVector=(0,0,0), referenceInf=(-100,-100,-100), referenceSup=(100,100,100)):
     taskIneq = MetaTaskIneqKine6d(taskName, robot.dynamic, jointName, jointName)
     taskIneq.feature.frame('desired')
-    gotoNd(taskIneq, positionVector, '111')
     taskIneq.feature.selec.value = '111111'
     taskIneq.task.add(taskIneq.feature.name)
     taskIneq.task.referenceSup.value = referenceSup
@@ -47,6 +46,7 @@ def createInequalityTask(taskName, jointName, selectionMask='000111', positionVe
     taskIneq.task.selec.value = selectionMask
     taskIneq.task.dt.value = 0.001
     taskIneq.task.controlGain.value = 0.9
+#     gotoNd(taskIneq, positionVector, '111')
     return taskIneq
 
 def createVelocityDampingTask(taskName, jointName, collisionCenter, di, ds):
