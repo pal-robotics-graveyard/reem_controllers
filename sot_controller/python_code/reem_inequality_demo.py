@@ -14,6 +14,9 @@ solver.addContact(taskBASE)
 push(taskIneq)
 push(taskRW)
 
+# push(taskIneq)
+
+
 # goalP2 = goalDef((0.2,0.0, 1.1))
 # taskVelDamp = createVelocityDampingTask('velDamp', 'arm_right_tool_joint', goalP2, 0.4, 0.2)
 
@@ -36,7 +39,3 @@ push(taskRW)
 # robot.dynamic.arm_right_tool_joint.recompute(0)
 # plug(robot.dynamic.signal("arm_right_tool_joint"), taskVelDamp.p1)
 # plug(robot.dynamic.signal("Jarm_right_tool_joint"), taskVelDamp.jVel)
-
-
-
-

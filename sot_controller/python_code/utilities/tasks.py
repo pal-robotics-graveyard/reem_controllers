@@ -17,6 +17,16 @@ from dynamic_graph.sot.dyninv import *
 from utilities.sot import pop
 from utilities.sot import push
 
+class MetaTaskIneqKine6d(MetaTaskKine6d):
+    def createTask(self):
+        self.task = TaskInequality('inequalitytask'+self.name)
+        
+    def createFeatures(self):
+        self.feature    = FeaturePoint6d('ineqfeature'+self.name)
+        self.featureDes = FeaturePoint6d('ineqfeature'+self.name+'_ref')
+        self.feature.selec.value = '111111'
+        self.feature.frame('current')
+
 def createJointLimitsTask(gain = 1, dt = 0.001):
     robot.dynamic.upperJl.recompute(0)
     robot.dynamic.lowerJl.recompute(0)
@@ -39,14 +49,14 @@ def createEqualityTask(taskName, jointName, gain = None):
 def createInequalityTask(taskName, jointName, selectionMask='000111', positionVector=(0,0,0), referenceInf=(-100,-100,-100), referenceSup=(100,100,100)):
     taskIneq = MetaTaskIneqKine6d(taskName, robot.dynamic, jointName, jointName)
     taskIneq.feature.frame('desired')
+    gotoNd(taskIneq, positionVector, '111')
     taskIneq.feature.selec.value = '111111'
-    taskIneq.task.add(taskIneq.feature.name)
+#     taskIneq.task.add(taskIneq.feature.name)
     taskIneq.task.referenceSup.value = referenceSup
     taskIneq.task.referenceInf.value = referenceInf
     taskIneq.task.selec.value = selectionMask
     taskIneq.task.dt.value = 0.001
     taskIneq.task.controlGain.value = 0.9
-#     gotoNd(taskIneq, positionVector, '111')
     return taskIneq
 
 def createVelocityDampingTask(taskName, jointName, collisionCenter, di, ds):
