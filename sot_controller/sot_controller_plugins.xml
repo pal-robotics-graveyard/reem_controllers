@@ -1,9 +1,0 @@
-<library path="lib/libsot_controller">
-
-  <class name="sot_reem_controller/SotReemController" type="sot_reem_controller::SotReemController" base_class_type="controller_interface::ControllerBase">
-    <description>
-      Controller interface for the stack of tasks.
-    </description>
-  </class>
-  
-</library>
