@@ -77,10 +77,12 @@ SotDevice::SotDevice(const std::string& entityName):
     dynamicgraph::sot::Device(entityName),
     status_(false),
     period_(0.001),
-    controlSOUT("SotDevice("+entityName+")::output(vector)::controlOut")
+    controlSOUT("SotDevice("+entityName+")::output(vector)::controlOut"),
+    dtSOUT("SotDevice("+entityName+")::output(double)::dt")
 {
     // Register signals into the entity.
     signalRegistration (controlSOUT);
+    signalRegistration (dtSOUT);
 }
 
 SotDevice::~SotDevice(){}
@@ -158,11 +160,18 @@ void SotDevice::pauseDevice() {
 
         increment(period_.toSec());
 
+        // Export some control and dt to the dynamic graph
         control_ = controlSIN.accessCopy();
         controlSOUT.setConstant(control_);
         controlSOUT.setTime(controlSIN.getTime());
 
+        dtSOUT.setConstant(period_.toSec());
+        dtSOUT.setTime(controlSIN.getTime());
+
         setState(state_);
+
+        // If you are going to close the loop, this is the spot where to place the code.
+
     }
     catch (...)
     {}
