@@ -31,7 +31,7 @@ def createPdf(name='graph', folder='/tmp/'):
 
 """
 To show the dynamic graph:
-
+np.set_printoptions(suppress=True, precision=3)
 python: writeGraph ("/tmp/graph.dot")
 
 shell: dot -o graph.pdf -Tpdf graph.dot
