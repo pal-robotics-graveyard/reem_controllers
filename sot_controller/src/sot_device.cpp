@@ -48,7 +48,7 @@
 
 #include <dynamic-graph/all-commands.h>
 
-// Activate some functions to use for timing
+// Activate timing functions
 //#define TIMING
 #ifdef TIMING
 #include <time.h>
@@ -125,7 +125,7 @@ void SotDevice::startThread(){
 }
 
 void SotDevice::stopThread(){
-    thread_.join(); //TODO: it is correct? Or Should I interrupt the thread?
+    thread_.join(); //TODO: Is it correct? Should I interrupt the thread?
 }
 
 ml::Vector SotDevice::getState(){
@@ -160,7 +160,7 @@ void SotDevice::pauseDevice() {
 
         increment(period_.toSec());
 
-        // Export some control and dt to the dynamic graph
+        // Export to the dynamic graph the old control value and dt
         control_ = controlSIN.accessCopy();
         controlSOUT.setConstant(control_);
         controlSOUT.setTime(controlSIN.getTime());
