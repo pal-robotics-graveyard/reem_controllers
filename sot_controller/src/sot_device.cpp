@@ -48,7 +48,7 @@
 
 #include <dynamic-graph/all-commands.h>
 
-// Activate some functions to use for timing
+// Activate timing functions
 //#define TIMING
 #ifdef TIMING
 #include <time.h>
@@ -77,10 +77,12 @@ SotDevice::SotDevice(const std::string& entityName):
     dynamicgraph::sot::Device(entityName),
     status_(false),
     period_(0.001),
-    controlSOUT("SotDevice("+entityName+")::output(vector)::controlOut")
+    controlSOUT("SotDevice("+entityName+")::output(vector)::controlOut"),
+    dtSOUT("SotDevice("+entityName+")::output(double)::dt")
 {
     // Register signals into the entity.
     signalRegistration (controlSOUT);
+    signalRegistration (dtSOUT);
 }
 
 SotDevice::~SotDevice(){}
@@ -123,7 +125,7 @@ void SotDevice::startThread(){
 }
 
 void SotDevice::stopThread(){
-    thread_.join(); //TODO: it is correct? Or Should I interrupt the thread?
+    thread_.join(); //TODO: Is it correct? Should I interrupt the thread?
 }
 
 ml::Vector SotDevice::getState(){
@@ -158,11 +160,18 @@ void SotDevice::pauseDevice() {
 
         increment(period_.toSec());
 
+        // Export to the dynamic graph the old control value and dt
         control_ = controlSIN.accessCopy();
         controlSOUT.setConstant(control_);
         controlSOUT.setTime(controlSIN.getTime());
 
+        dtSOUT.setConstant(period_.toSec());
+        dtSOUT.setTime(controlSIN.getTime());
+
         setState(state_);
+
+        // If you are going to close the loop, this is the spot where to place the code.
+
     }
     catch (...)
     {}

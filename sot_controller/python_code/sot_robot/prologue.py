@@ -42,6 +42,7 @@ solver = SolverKine('sot')
 solver.setSize(robot.dimension)
 robot.device.control.unplug()
 plug(solver.control,robot.device.control)
+# Close the control loop
 plug(robot.device.state,robot.dynamic.position)
 
 print("...done!")

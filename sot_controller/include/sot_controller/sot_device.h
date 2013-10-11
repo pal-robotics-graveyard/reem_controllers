@@ -100,6 +100,9 @@ public:
     /// \brief Previous signal control value.
     dynamicgraph::Signal<ml::Vector,int> controlSOUT;
 
+    /// \brief Sample time, given by the controller manager.
+    dynamicgraph::Signal<double,int> dtSOUT;
+
     /// \brief Get the robot state.
     ml::Vector getState();
 

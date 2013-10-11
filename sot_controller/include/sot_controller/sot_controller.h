@@ -46,9 +46,9 @@
 # include <boost/shared_ptr.hpp>
 
 /**
- * \brief Position controller for the REEM robot. It is wrapping sot_device.
+ * \brief Position controller for the robot. It is wrapping sot_device.
  *
- * This class works as interface for ros_control.
+ * This class works as plugin for ros_control.
  *
  */
 
