@@ -39,20 +39,18 @@
 
 # include "sot_controller/sot_device.h"
 
-#include <dynamic-graph/factory.h>
-#include <dynamic-graph/command-setter.h>
-#include <dynamic-graph/debug.h>
-#include "soth/debug.hpp"
-#include <sot/core/exception-factory.hh>
-#include <dynamic-graph/all-commands.h>
-
-#include <dynamic-graph/all-commands.h>
+# include <dynamic-graph/factory.h>
+# include <dynamic-graph/command-setter.h>
+# include <dynamic-graph/debug.h>
+# include "soth/debug.hpp"
+# include <sot/core/exception-factory.hh>
+# include <dynamic-graph/all-commands.h>
 
 // Activate timing functions
-//#define TIMING
-#ifdef TIMING
-#include <time.h>
-#include <ctime>
+//# define TIMING
+# ifdef TIMING
+# include <time.h>
+# include <ctime>
 struct timeval start;
 struct timeval end;
 void start_timing(){
@@ -63,10 +61,8 @@ void end_timing(){
     long elapsed = (end.tv_usec-start.tv_usec);
     std::cout<<(1.0/1000000) * elapsed<<std::endl;
 }
-#endif
+# endif
 
-// Activate the threading with condition variables
-//#define COND_VAR_VER
 
 using sot_controller::SotDevice;
 using dynamicgraph::sot::ExceptionFactory;
@@ -75,102 +71,239 @@ const std::string SotDevice::CLASS_NAME = "SotDevice";
 
 SotDevice::SotDevice(const std::string& entityName):
     dynamicgraph::sot::Device(entityName),
+    velocitySOUT("SotDevice("+entityName+")::output(vector)::velocity"),
+    dtSOUT("SotDevice("+entityName+")::output(double)::dt"),
     status_(false),
-    period_(0.001),
-    controlSOUT("SotDevice("+entityName+")::output(vector)::controlOut"),
-    dtSOUT("SotDevice("+entityName+")::output(double)::dt")
+    period_(0.01)
 {
     // Register signals into the entity.
-    signalRegistration (controlSOUT);
+    signalRegistration (velocitySOUT);
     signalRegistration (dtSOUT);
 }
 
 SotDevice::~SotDevice(){}
 
-bool SotDevice::init()
+bool SotDevice::init(unsigned int jointsSize)
 {
-    return true;
+    // Read state from dynamic graph and use it to check the sizes
+    int t = stateSOUT.getTime();
+    maal::boost::Vector state = stateSOUT.access(t);
+    const unsigned int deviceStateSize = state.size();
+    const unsigned int controllerStateSize = jointsSize + offset_;
+
+    sotDEBUG(25) << "stateSOUT.access ("<< t << ") = " << state << std::endl;
+    sotDEBUG(25) << "deviceStateSize = " << deviceStateSize << std::endl;
+    sotDEBUG(25) << "controllerStateSize = " << controllerStateSize << std::endl;
+
+    if (deviceStateSize == controllerStateSize){
+        // Initialize the shared variables to zero
+        // We are not in real time yet
+        shared_position_.resize(controllerStateSize);
+        shared_velocity_.resize(controllerStateSize);
+        return true;
+    }
+    else {
+        std::stringstream err;
+        err << "The robot state in dynamic graph has size ["<< deviceStateSize
+            <<"], it is different from the state size in the controller ["
+            << controllerStateSize <<"].";
+        throw std::range_error(err.str());
+        return false;
+    }
 }
 
-void SotDevice::starting(joints_t& joints_){
+void SotDevice::starting(const stdVector_t& initConf){
 
-    // Read state from motor command
-    int t = stateSOUT.getTime () + 1;
-    maal::boost::Vector state = stateSOUT.access (t);
-
-    sotDEBUG (25) << "stateSOUT.access (" << t << ") = " << state << std::endl;
-    sotDEBUG (25) << "state.size () = " << state.size () << std::endl;
-    sotDEBUG (25) << "joints_.size () = " << joints_.size () << std::endl;
-
-    if (state.size() == joints_.size() + offset_)
-        for (unsigned int i = 0 ; i < joints_.size() ; i++){
-            state(i+offset_) = joints_[i].getPosition();
-        }
-    else{
-        std::stringstream err;
-        err << "state.size() ("<< state.size() <<") is different from joints_.size() + offset ("<< (joints_.size()) <<").";
-        throw std::range_error(err.str());
-    }
-
-    stateSOUT.setConstant (state);
-
-    // Set the initial conditions
-    state_ = state;
-    shared_state_ = state;
-
+    // Initialize the shared variable with motor positions
+    // Now we are in real time
+    setSharedPosition(initConf);
 }
 
 void SotDevice::startThread(){
+    killThread_ = false;
     thread_ = boost::thread(&SotDevice::update, this);
 }
 
 void SotDevice::stopThread(){
-    thread_.join(); //TODO: Is it correct? Should I interrupt the thread?
+    killThread_ = true;
+# ifdef COND_VAR_VER
+    cond_.notify_all();
+# endif
+    thread_.join();
 }
 
-ml::Vector SotDevice::getState(){
+void SotDevice::setSharedState(ml::Vector const &inputPosition,ml::Vector const &inputVelocity){
     boost::unique_lock<mutex_t> guard(mtx_state_);
-    ml::Vector outputState;
-    outputState.resize(shared_state_.size()-6);
-    for (unsigned int i = 0; i<outputState.size(); i++){
-        outputState(i) = shared_state_(i+offset_);
+    if(inputPosition.size() == shared_position_.size() && inputVelocity.size() == shared_velocity_.size()){ // inputPosition and inputVelocity contain the ffpose
+        shared_position_ = inputPosition;
+        shared_velocity_ = inputVelocity;
     }
-    return outputState;
+    /*
+    else
+        for (unsigned i = 0; i<inputPosition.size(); i++){
+            shared_position_(i+offset_) = inputPosition(i);
+            shared_velocity_(i+offset_) = inputVelocity(i);
+        }
+        */
 }
 
-void SotDevice::setState(ml::Vector state){
-    boost::unique_lock<mutex_t> guard(mtx_state_);
-    shared_state_ = state;
+bool SotDevice::getSharedState(stdVector_t &outputPosition, stdVector_t &outputVelocity){
+    boost::unique_lock<mutex_t> guard(mtx_state_,boost::defer_lock);
+    if(guard.try_lock()){
+        /*
+        if(outputPosition.size() == shared_position_.size() && outputVelocity.size() == outputPosition.size()) // outputPosition and outputVelocity contain the ffpose
+            for (unsigned i = 0; i<outputPosition.size(); i++){
+                outputPosition[i] = shared_position_(i);
+                outputVelocity[i] = shared_velocity_(i);
+            }
+        else*/
+        for (unsigned i = 0; i<outputPosition.size(); i++){
+            outputPosition[i] = shared_position_(i+offset_);
+            outputVelocity[i] = shared_velocity_(i+offset_);
+        }
+        guard.unlock();
+        return true;
+    }
+    else
+        return false;
 }
 
-void SotDevice::pauseDevice() {
-#ifdef COND_VAR_VER
+void SotDevice::getSharedPosition(stdVector_t &outputPosition){
+    boost::unique_lock<mutex_t> guard(mtx_position_);
+    if(outputPosition.size() == shared_position_.size()) // outputPosition contains the ffpose
+        for (unsigned i = 0; i<outputPosition.size(); i++)
+            outputPosition[i] = shared_position_(i);
+    else
+        for (unsigned i = 0; i<outputPosition.size(); i++)
+            outputPosition[i] = shared_position_(i+offset_);
+}
+
+void SotDevice::getSharedPosition(ml::Vector &outputPosition){
+    boost::unique_lock<mutex_t> guard(mtx_position_);
+    if(outputPosition.size() == shared_position_.size()) // outputPosition contains the ffpose
+        outputPosition = shared_position_;
+    else
+        for (unsigned i = 0; i<outputPosition.size(); i++)
+            outputPosition(i) = shared_position_(i+offset_);
+}
+
+void SotDevice::setSharedPosition(stdVector_t const &inputPosition){
+    boost::unique_lock<mutex_t> guard(mtx_position_);
+    if(inputPosition.size() == shared_position_.size()) // inputPosition contains the ffpose
+        for (unsigned i = 0; i<inputPosition.size(); i++)
+            shared_position_(i) = inputPosition[i];
+    else
+        for (unsigned i = 0; i<inputPosition.size(); i++)
+            shared_position_(i+offset_) = inputPosition[i];
+}
+
+void SotDevice::setSharedPosition(ml::Vector const &inputPosition){
+    boost::unique_lock<mutex_t> guard(mtx_position_);
+    if(inputPosition.size() == shared_position_.size()) // inputPosition contains the ffpose
+        shared_position_ = inputPosition;
+    else
+        for (unsigned i = 0; i<inputPosition.size(); i++)
+            shared_position_(i+offset_) = inputPosition(i);
+}
+
+void SotDevice::getSharedVelocity(stdVector_t &outputVelocity){
+    boost::unique_lock<mutex_t> guard(mtx_velocity_);
+    if(outputVelocity.size() == shared_velocity_.size()) // outputVelocity contains the ffpose
+        for (unsigned i = 0; i<outputVelocity.size(); i++)
+            outputVelocity[i] = shared_velocity_(i);
+    else
+        for (unsigned i = 0; i<outputVelocity.size(); i++)
+            outputVelocity[i] = shared_velocity_(i+offset_);
+}
+
+void SotDevice::getSharedVelocity(ml::Vector &outputVelocity){
+    boost::unique_lock<mutex_t> guard(mtx_velocity_);
+    if(outputVelocity.size() == shared_velocity_.size()) // outputVelocity contains the ffpose
+        outputVelocity = shared_velocity_;
+    else
+        for (unsigned i = 0; i<outputVelocity.size(); i++)
+            outputVelocity(i) = shared_velocity_(i+offset_);
+}
+
+void SotDevice::setSharedVelocity(stdVector_t const &inputVelocity){
+    boost::unique_lock<mutex_t> guard(mtx_velocity_);
+    if(inputVelocity.size() == shared_velocity_.size()) // inputVelocity contains the ffpose
+        for (unsigned i = 0; i<inputVelocity.size(); i++)
+            shared_velocity_(i) = inputVelocity[i];
+    else
+        for (unsigned i = 0; i<inputVelocity.size(); i++)
+            shared_velocity_(i+offset_) = inputVelocity[i];
+}
+
+void SotDevice::setSharedVelocity(ml::Vector const &inputVelocity){
+    boost::unique_lock<mutex_t> guard(mtx_velocity_);
+    if(inputVelocity.size() == shared_velocity_.size()) // inputVelocity contains the ffpose
+        shared_velocity_ = inputVelocity;
+    else
+        for (unsigned i = 0; i<inputVelocity.size(); i++)
+            shared_velocity_(i+offset_) = inputVelocity(i);
+}
+
+bool  SotDevice::waitTillTriggered()
+{
+# ifdef COND_VAR_VER
     boost::unique_lock<mutex_t> guard(mtx_run_);
     while(!getDeviceStatus())
     {
+        if (killThread_)
+            return true;
         cond_.wait(guard);
     }
-#else
+# else
     boost::unique_lock<mutex_t> guard(mtx_run_, boost::defer_lock);
-    while(!getDeviceStatus()){ }
+    while(!getDeviceStatus())
+    {
+        if (killThread_)
+            return true;
+    }
     guard.lock();
-#endif
-    // Integrate control
+# endif
+    return false;
+}
+
+void SotDevice::computeNewState() {
+    if (waitTillTriggered())
+        return;
     try{
 
+# ifdef CLOSED_LOOP
+        // Get the current state
+        getSharedPosition(state_);
+# endif
+
+        // Integrate the control to obtain the new state
         increment(period_.toSec());
 
-        // Export to the dynamic graph the old control value and dt
-        control_ = controlSIN.accessCopy();
-        controlSOUT.setConstant(control_);
-        controlSOUT.setTime(controlSIN.getTime());
+# ifdef COLLISION_CHECK_DEVICE
+        // Convert state maal::boost::Vector in std::vector without freeflyer
+        stdVector_t jointPositions_tmp;
+        jointPositions_tmp.resize(state_.size()-offset_);
+        for (unsigned i = 0; i < jointPositions_tmp.size(); ++i)
+            jointPositions_tmp[i] = (state_(i+offset_));
+        if(bs_->is_safe(jointPositions_tmp)){
+            // Position safe, set the new state
+            //setSharedPosition(state_);
+            //setSharedVelocity(control_);
+            setSharedState(state_,control_);
+        }
+# else
+        // Set the new state
+        //setSharedPosition(state_);
+        //setSharedVelocity(control_);
+        setSharedState(state_,control_);
+# endif
 
+        // Export the old control value and dt as dynamic graph signals
+        control_ = controlSIN.accessCopy();
+        velocitySOUT.setConstant(control_);
+        velocitySOUT.setTime(controlSIN.getTime());
         dtSOUT.setConstant(period_.toSec());
         dtSOUT.setTime(controlSIN.getTime());
-
-        setState(state_);
-
-        // If you are going to close the loop, this is the spot where to place the code.
 
     }
     catch (...)
@@ -178,33 +311,53 @@ void SotDevice::pauseDevice() {
 }
 
 void SotDevice::runDevice(const ros::Duration& period) {
-#ifdef COND_VAR_VER
+# ifdef COND_VAR_VER
     {
         boost::unique_lock<mutex_t> guard(mtx_run_);
         period_ = period;         //Set the internal period
         setDeviceStatus(true);
     }
     cond_.notify_one();
-#else
+# else
+    /*
     boost::unique_lock<mutex_t> guard(mtx_run_);
     period_ = period;         //Set the internal period
     setDeviceStatus(true);
-#endif
+    */
+    //HACK
+    boost::unique_lock<mutex_t> guard(mtx_run_, boost::defer_lock);
+    if(guard.try_lock()){
+        period_ = period;         //Set the internal period
+        setDeviceStatus(true);
+        guard.unlock();
+    }
+
+# endif
 }
 
 bool SotDevice::getDeviceStatus() {
+# ifndef CPP11
     boost::lock_guard<mutex_t> guard(mtx_status_);
     return status_;
+# else
+    //return status_.load(std::memory_order_relaxed);
+    return status_;
+# endif
 }
 
 void SotDevice::setDeviceStatus(bool status) {
+# ifndef CPP11
     boost::lock_guard<mutex_t> guard(mtx_status_);
     status_ = status;
+# else
+    //status_.store(status,std::memory_order_relaxed);
+    status_ = status;
+# endif
 }
 
 void SotDevice::update(){
-    while(true){
-        pauseDevice();
+    while(!killThread_){
+        computeNewState();
         setDeviceStatus(false);
     }
 }

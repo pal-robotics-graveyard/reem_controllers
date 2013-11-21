@@ -12,6 +12,9 @@ include(cmake/python.cmake)
 #  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
 #set(ROS_BUILD_TYPE RelWithDebInfo)
 
+# Use c++11 for atomic variables
+set(CMAKE_CXX_FLAGS "-std=c++0x")
+
 rosbuild_init()
 
 #set the default path for built executables to the "bin" directory
@@ -25,15 +28,10 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #rosbuild_gensrv()
 
 # Search for dependencies.
-ADD_REQUIRED_DEPENDENCY("jrl-mathtools")
-ADD_REQUIRED_DEPENDENCY("jrl-mal")
 ADD_REQUIRED_DEPENDENCY("dynamic-graph")
 ADD_REQUIRED_DEPENDENCY("dynamic-graph-python")
 ADD_REQUIRED_DEPENDENCY("sot-core")
 ADD_REQUIRED_DEPENDENCY("sot-dyninv")
-
-# This is required by the Python prologue.
-ADD_REQUIRED_DEPENDENCY("sot-dynamic")
 
 # Python
 INCLUDE(cmake/python.cmake)
@@ -50,12 +48,12 @@ LINK_DIRECTORIES(${PYTHON_LIBRARY_DIRS})
 #target_link_libraries(example ${PROJECT_NAME})
 
 rosbuild_add_library(${PROJECT_NAME} src/sot_controller.cpp src/sot_device.cpp include/sot_controller/sot_controller.h include/sot_controller/sot_device.h)
-target_link_libraries(sot_controller dynamic-graph)
-target_link_libraries(sot_controller sot-core)
-target_link_libraries(sot_controller dynamic-graph-python)
+target_link_libraries(${PROJECT_NAME} safety_pipeline)
+
+rosbuild_add_executable(${PROJECT_NAME}_test test/test.cpp)
+target_link_libraries(${PROJECT_NAME}_test ${PROJECT_NAME})
 
 PKG_CONFIG_USE_DEPENDENCY(sot_controller "dynamic-graph")
-PKG_CONFIG_USE_DEPENDENCY(sot_controller "sot-core")
 PKG_CONFIG_USE_DEPENDENCY(sot_controller "dynamic-graph-python")
+PKG_CONFIG_USE_DEPENDENCY(sot_controller "sot-core")
 PKG_CONFIG_USE_DEPENDENCY(sot_controller "sot-dyninv")
-

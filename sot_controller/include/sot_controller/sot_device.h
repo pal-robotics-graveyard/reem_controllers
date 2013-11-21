@@ -45,15 +45,34 @@
 
 # include <boost/thread.hpp>
 
-//# define COND_VAR_VER
+# define CPP11
+# ifdef CPP11
+# include <atomic>
+# endif
+
+// Enable the collision check in the device
+# define COLLISION_CHECK_DEVICE
+
+# ifdef COLLISION_CHECK_DEVICE
+# include <ros_control_pipeline/safety.hpp>
+# endif
+
+// Enable the closed loop
+// Note: this is not real time safe
+// # define CLOSED_LOOP
+
+// Enable the threading with condition variables
+// Note: this is not real time safe
+// # define COND_VAR_VER
 
 /**
  * \brief Interface controller for the stack of tasks. It is wrapped by sot_controller.
  */
 
 typedef std::vector<hardware_interface::JointHandle> joints_t;
+typedef std::vector<std::string> jointNames_t;
+typedef std::vector<double> stdVector_t;
 typedef boost::mutex mutex_t;
-
 
 namespace sot_controller
 {
@@ -72,21 +91,25 @@ public:
     /// \{
 
     /// \brief Non real-time device start.
-    bool init();
+    bool init(unsigned int jointsSize);
 
-    /// \brief Called when plug-in is started.
-    void starting(joints_t& joints_);
+    /// \brief Called when the plug-in is started.
+    void starting(const stdVector_t& initial_configuration);
 
     /// \}
 
     /// \brief Trigger the device computation.
     void runDevice(const ros::Duration& period);
 
-    /// \brief Wait for the trigger.
-    void pauseDevice();
+    /// \brief Compute the new state.
+    void computeNewState();
 
     /// \brief Get the execution state of the device.
     bool getDeviceStatus();
+
+    /// \brief Wait for the trigger.
+    /// \brief Returns whether thread was killed
+    bool waitTillTriggered();
 
     /// \brief Set the execution state of the device.
     void setDeviceStatus(bool status);
@@ -97,34 +120,68 @@ public:
     /// \brief Stop the thread.
     void stopThread();
 
-    /// \brief Previous signal control value.
-    dynamicgraph::Signal<ml::Vector,int> controlSOUT;
+    /// \brief Set the robot state {position,velocity}, function used by the device.
+    void setSharedState(ml::Vector const &inputPosition, ml::Vector const &inputVelocity);
+
+    /// \brief Get the robot state {position,velocity}, function used by the controller.
+    bool getSharedState(stdVector_t &outputPosition, stdVector_t &outputVelocity);
+
+    /// \brief Get the robot position.
+    void getSharedPosition(ml::Vector &outputPosition);
+    void getSharedPosition(stdVector_t &outputPosition);
+
+    /// \brief Set the robot position.
+    void setSharedPosition(ml::Vector const &inputPosition);
+    void setSharedPosition(stdVector_t const &inputPosition);
+
+    /// \brief Get the robot velocity.
+    void getSharedVelocity(ml::Vector &outputVelocity);
+    void getSharedVelocity(stdVector_t &outputVelocity);
+
+    /// \brief Set the robot velocity.
+    void setSharedVelocity(ml::Vector const &inputVelocity);
+    void setSharedVelocity(stdVector_t const &inputVelocity);
+
+    /// \brief Signal velocity.
+    dynamicgraph::Signal<ml::Vector,int> velocitySOUT;
 
     /// \brief Sample time, given by the controller manager.
     dynamicgraph::Signal<double,int> dtSOUT;
 
-    /// \brief Get the robot state.
-    ml::Vector getState();
-
-    /// \brief Set the robot state.
-    void setState(ml::Vector);
+# ifdef COLLISION_CHECK_DEVICE
+    /// \brief Safety checker.
+    boost::shared_ptr<pipeline::BipedSafety>  bs_;
+# endif
 
 private:
 
-    /// \name Used for the threading and the synchronization with the controller.
+    /// \name Attributes used for threading and synchronization with the controller.
     /// \{
-    ml::Vector shared_state_;
+    ml::Vector shared_position_;
+    ml::Vector shared_velocity_;
     mutex_t mtx_run_;
-    mutex_t mtx_state_;
-    mutex_t mtx_status_;
+    mutex_t mtx_position_;
+    mutex_t mtx_velocity_;
+    mutex_t mtx_state_; // state = {position, velocity}
+# ifdef COND_VAR_VER
     boost::condition_variable cond_;
-    /// \}
+# endif
 
     /// \brief Execution state of the Device, true is running, false is stopped.
-    int status_;
+# ifdef CPP11
+    std::atomic<bool> status_;
+# else
+    mutex_t mtx_status_;
+    bool status_;
+# endif
+
+    /// \}
 
     /// \brief Object thread.
     boost::thread thread_;
+
+    /// \brief Stop the thread.
+    bool killThread_;
 
     /// \brief Time period.
     ros::Duration period_;
@@ -132,7 +189,7 @@ private:
     /// \brief Control value used to compute the new state.
     ml::Vector control_;
 
-    /// \brief Default offset.
+    /// \brief Default dimension for the free flyer pose.
     static const unsigned int offset_ = 6;
 
     /// \brief Called at each control loop.
