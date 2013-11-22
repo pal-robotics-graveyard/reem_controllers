@@ -12,7 +12,6 @@ from dynamic_graph import plug
 
 # http://wiki.ros.org/dynamic_graph_bridge
 
-
 exportcounter = 0
 importcounter = 0
 
@@ -36,7 +35,6 @@ def createRosImport(type, importSignal, topic):
     ros.rosImport.add(type, str(rosImportSignalIntern), topic)
     plug(importSignal, ros.rosImport.signal(str(rosImportSignalIntern)))
 
-    
 ros = Ros(robot)
 
 # createRosImport('vector', taskRightArmBoundary.referenceInf, '/rviz_marker_listener_sot_inf')

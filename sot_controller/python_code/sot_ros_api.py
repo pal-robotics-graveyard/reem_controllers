@@ -22,13 +22,6 @@ import roslib; roslib.load_manifest('sot_controller')
 import tf
 import rospy
 
-def createPdf(name='graph', folder='/tmp/'):
-    file = folder + name
-    writeGraph(file+'.dot')
-    import os
-    os.system('dot -o '+file+'.pdf -Tpdf '+file+'.dot')
-    os.system('evince '+file+'.pdf &')
-
 """
 To show the dynamic graph:
 np.set_printoptions(suppress=True, precision=3)
@@ -36,3 +29,9 @@ python: writeGraph ("/tmp/graph.dot")
 
 shell: dot -o graph.pdf -Tpdf graph.dot
 """
+def createPdf(name='graph', folder='/tmp/'):
+    file = folder + name
+    writeGraph(file+'.dot')
+    import os
+    os.system('dot -o '+file+'.pdf -Tpdf '+file+'.dot')
+    os.system('evince '+file+'.pdf &')

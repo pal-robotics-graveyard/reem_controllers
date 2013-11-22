@@ -129,7 +129,7 @@ void SotDevice::stopThread(){
 # ifdef COND_VAR_VER
     cond_.notify_all();
 # endif
-    thread_.join();
+    thread_.interrupt();
 }
 
 void SotDevice::setSharedState(ml::Vector const &inputPosition,ml::Vector const &inputVelocity){
@@ -250,7 +250,7 @@ bool  SotDevice::waitTillTriggered()
     boost::unique_lock<mutex_t> guard(mtx_run_);
     while(!getDeviceStatus())
     {
-        if (killThread_)
+        if (getKillThreadStatus())
             return true;
         cond_.wait(guard);
     }

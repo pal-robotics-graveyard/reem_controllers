@@ -27,8 +27,6 @@ robot = RobotBuilder(name = 'robot', device = Device('robot_device'))
 
 print("Number of dofs (6 for the freeflyer + num of joints):")
 print robot.dimension
-print("Initial configuration of the robot: (freeflyer + joints)")
-print robot.halfSitting
 
 # FIXME: this must be set so that the graph can be evaluated.
 robot.device.zmp.value = (0., 0., 0.)

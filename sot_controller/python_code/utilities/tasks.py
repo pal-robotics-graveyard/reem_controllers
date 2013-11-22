@@ -4,7 +4,7 @@ Created on 30 Aug 2013
 @author: Karsten Knese, Gennaro Raiola
 '''
 from dynamic_graph.sot.core.meta_task_6d import MetaTask6d,toFlags
-from dynamic_graph.sot.core.meta_tasks import setGain
+from dynamic_graph.sot.core.meta_tasks import *
 from dynamic_graph.sot.core.meta_tasks_kine import *
 from dynamic_graph.sot.core.meta_task_posture import MetaTaskKinePosture
 from dynamic_graph.sot.core.meta_task_visual_point import MetaTaskVisualPoint
@@ -27,16 +27,24 @@ class MetaTaskIneqKine6d(MetaTaskKine6d):
         self.feature.selec.value = '111111'
         self.feature.frame('current')
 
-def createJointLimitsTask(gain = 1, dt = 0.001):
+def createJointLimitsTask(gain = 1, dt = None):
     robot.dynamic.upperJl.recompute(0)
     robot.dynamic.lowerJl.recompute(0)
     taskJL = TaskJointLimits('jointLimits')
     plug(robot.dynamic.position, taskJL.position)
+    """
+    The internal gain for the joint limits task is defined as 1/gain, i.e. is used to limit the maximum reachable 
+    velocity in a single time interval (dt).
+    A high value can be used to limit oscillations around the goal point but it slows down the motion.
+    """
     taskJL.controlGain.value = gain
     taskJL.referenceInf.value = robot.dynamic.lowerJl.value
     taskJL.referenceSup.value = robot.dynamic.upperJl.value
-    taskJL.dt.value = dt
     taskJL.selec.value = toFlags(range(6, robot.dimension))
+    if(dt):
+        taskJL.dt.value = dt
+    else:
+        plug(robot.device.dt,taskJL.dt)
     return taskJL
 
 def createEqualityTask(taskName, jointName, gain = None):
@@ -75,8 +83,9 @@ def createVelocityDampingTask(taskName, jointName, collisionCenter, di, ds):
 #     plug(robot.dynamic.signal("Jarm_right_tool_joint"), taskVelDamp.jVel)
 
 
-def createWeightsTask(diag = None, gain = 1000, sampleInterval = 0):
-    taskWeights = MetaTaskJointWeights('jointWeights',robot,diag,gain,sampleInterval)
+def createWeightsTask(diag = None, gain = 1000, sampleInterval = 0, selec=None):
+    selec = toFlags(range(0,robot.dimension))
+    taskWeights = MetaTaskJointWeights('jointWeights',selec,robot,diag,gain,sampleInterval)
     return taskWeights
 
 def createGazeTask(jointName):
@@ -105,3 +114,20 @@ def createComIneqTask(gain = 1, dt = 0.001, referenceInf = (-1,-1, 0), reference
     taskCom.controlGain.value = gain
     return taskCom
 
+def gotoNdComp(task,position,selec=None,gain=None,resetJacobian=True,comp=[[0,1,0],[0,0,1],[1,0,0]]):
+    '''
+    gotoNdComp takes care of the different frame orientations used in jrl-dynamics. 
+    Be careful about the comp matrix, it is specific for reem and reemc (and could be different among
+    different joint frames)
+    '''
+    M = generic6dReference(position.copy())
+    R = M[0:3,0:3]
+    R = R*comp
+    M[0:3,0:3] = R
+    if selec!=None:
+        if isinstance(selec,str):   task.feature.selec.value = selec
+        else: task.feature.selec.value = toFlags(selec)
+    task.featureDes.position.value = matrixToTuple(M)
+    setGain(task.gain,gain)
+    if 'resetJacobianDerivative' in task.task.__class__.__dict__.keys() and resetJacobian:
+        task.task.resetJacobianDerivative()
