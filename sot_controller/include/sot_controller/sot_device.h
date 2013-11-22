@@ -50,7 +50,7 @@
 # endif
 
 // Enable the collision check in the device
-# define COLLISION_CHECK_DEVICE
+// # define COLLISION_CHECK_DEVICE
 
 # ifdef COLLISION_CHECK_DEVICE
 # include <ros_control_pipeline/safety.hpp>

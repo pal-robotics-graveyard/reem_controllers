@@ -1,8 +1,3 @@
-'''
-Created on 30 Aug 2013
-
-@author: Karsten Knese, Gennaro Raiola
-'''
 from dynamic_graph.sot.core.meta_task_6d import MetaTask6d,toFlags
 from dynamic_graph.sot.core.meta_tasks import *
 from dynamic_graph.sot.core.meta_tasks_kine import *
@@ -83,8 +78,7 @@ def createVelocityDampingTask(taskName, jointName, collisionCenter, di, ds):
 #     plug(robot.dynamic.signal("Jarm_right_tool_joint"), taskVelDamp.jVel)
 
 
-def createWeightsTask(diag = None, gain = 1000, sampleInterval = 0, selec=None):
-    selec = toFlags(range(0,robot.dimension))
+def createWeightsTask(diag = None, gain = 1000, sampleInterval = 0, selec = toFlags(range(0,robot.dimension))):
     taskWeights = MetaTaskJointWeights('jointWeights',selec,robot,diag,gain,sampleInterval)
     return taskWeights
 

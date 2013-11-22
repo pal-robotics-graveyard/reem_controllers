@@ -100,7 +100,9 @@ bool SotDevice::init(unsigned int jointsSize)
         // We are not in real time yet
         shared_position_.resize(internalStateSize);
         shared_velocity_.resize(internalStateSize);
+# ifdef COLLISION_CHECK_DEVICE
         jointPositions_.resize(jointsSize);
+# endif
         state_size_ = internalStateSize;
         return true;
     }
@@ -119,6 +121,8 @@ void SotDevice::starting(const stdVector_t &initPos,const stdVector_t &initVel){
     // Note: Now the velocities are zero because the device and the controller are working with only positions.
     // Now we are in real time
     setSharedState(initPos,initVel);
+    // Set the device internal variable
+    setState(shared_position_);
 }
 
 void SotDevice::startThread(){
@@ -154,6 +158,7 @@ void SotDevice::setSharedState(stdVector_t const &inputPosition,stdVector_t cons
                 shared_position_(i+offset_) = inputPosition[i];
                 shared_velocity_(i+offset_) = inputVelocity[i];
             }
+        guard.unlock();
     }
 }
 
