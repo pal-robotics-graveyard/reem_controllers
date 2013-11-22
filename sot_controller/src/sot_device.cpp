@@ -120,12 +120,12 @@ void SotDevice::starting(const stdVector_t& initConf){
 }
 
 void SotDevice::startThread(){
-    killThread_ = false;
+    setKillThreadStatus(false);
     thread_ = boost::thread(&SotDevice::update, this);
 }
 
 void SotDevice::stopThread(){
-    killThread_ = true;
+    //setKillThreadStatus(true);
 # ifdef COND_VAR_VER
     cond_.notify_all();
 # endif
@@ -258,7 +258,7 @@ bool  SotDevice::waitTillTriggered()
     boost::unique_lock<mutex_t> guard(mtx_run_, boost::defer_lock);
     while(!getDeviceStatus())
     {
-        if (killThread_)
+        if (getKillThreadStatus())
             return true;
     }
     guard.lock();
@@ -324,7 +324,6 @@ void SotDevice::runDevice(const ros::Duration& period) {
     period_ = period;         //Set the internal period
     setDeviceStatus(true);
     */
-    //HACK
     boost::unique_lock<mutex_t> guard(mtx_run_, boost::defer_lock);
     if(guard.try_lock()){
         period_ = period;         //Set the internal period
@@ -355,8 +354,28 @@ void SotDevice::setDeviceStatus(bool status) {
 # endif
 }
 
+bool SotDevice::getKillThreadStatus() {
+# ifndef CPP11
+    boost::lock_guard<mutex_t> guard(mtx_kill_thread_);
+    return killThread_;
+# else
+    //return status_.load(std::memory_order_relaxed);
+    return killThread_;
+# endif
+}
+
+void SotDevice::setKillThreadStatus(bool kill) {
+# ifndef CPP11
+    boost::lock_guard<mutex_t> guard(mtx_kill_thread_);
+    killThread_ = kill;
+# else
+    //status_.store(status,std::memory_order_relaxed);
+    killThread_ = kill;
+# endif
+}
+
 void SotDevice::update(){
-    while(!killThread_){
+    while(!getKillThreadStatus()){
         computeNewState();
         setDeviceStatus(false);
     }

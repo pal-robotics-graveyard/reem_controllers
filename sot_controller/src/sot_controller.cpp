@@ -58,10 +58,8 @@ SotController::SotController():
 
 SotController::~SotController() {
     device_->stopThread();
-
-    for (unsigned int i = 0; i < joints_.size(); ++i){
+    for (unsigned int i = 0; i < joints_.size(); ++i)
         ROS_INFO("Current joint_%d position: %f64\n",i+1,joints_[i].getPosition());
-    }
 }
 
 void SotController::runPython(std::ostream& file, const std::string& command, dynamicgraph::Interpreter& interpreter)
@@ -296,6 +294,10 @@ void SotController::update(const ros::Time& time, const ros::Duration& period) {
         }
         publisher_->unlockAndPublish();
     }
+}
+
+void SotController::stopping(const ros::Time& time){
+    device_->setKillThreadStatus(true);
 }
 
 stdVector_t SotController::loadFreeFlyer(ros::NodeHandle& controller_nh) const

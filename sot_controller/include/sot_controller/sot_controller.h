@@ -79,7 +79,9 @@ public:
 
     bool init(hardware_interface::PositionJointInterface *robot, ros::NodeHandle& root_nh, ros::NodeHandle& controller_nh);
     void starting(const ros::Time& time);
+    void stopping(const ros::Time& time);
     void update(const ros::Time& time, const ros::Duration& period);
+
 
     SotDevice* getDevicePtr();
 
@@ -106,26 +108,6 @@ private:
     /// \brief Safety checker.
     boost::shared_ptr<pipeline::BipedSafety>  bs_;
 # endif
-
-/*
-    /// \brief Internal vectors, used to speed up the computations
-    stdVector_t internalStdVector_;
-    ml::Vector internalMaalVector_;
-
-    /// \brief Convert ml::Vector into std::vector or viceversa, use internal vectors
-    /// to be real time safe
-    void convertVector(const ml::Vector& v)
-    {
-        for (unsigned i = 0; i < v.size(); ++i)
-            internalStdVector_[i] = v(i);
-    }
-
-    void convertVector(const stdVector_t& v)
-    {
-        for (unsigned i = 0; i < v.size(); ++i)
-            internalMaalVector_(i) = v[i];
-    }
-*/
 
 };
 }

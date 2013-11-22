@@ -107,12 +107,18 @@ public:
     /// \brief Get the execution state of the device.
     bool getDeviceStatus();
 
+    /// \brief Set the execution state of the device.
+    void setDeviceStatus(bool status);
+
+    /// \brief Check if the thread should be killed.
+    bool getKillThreadStatus();
+
+    /// \brief Set the kill signal.
+    void setKillThreadStatus(bool kill);
+
     /// \brief Wait for the trigger.
     /// \brief Returns whether thread was killed
     bool waitTillTriggered();
-
-    /// \brief Set the execution state of the device.
-    void setDeviceStatus(bool status);
 
     /// \brief Start the thread.
     void startThread();
@@ -181,7 +187,12 @@ private:
     boost::thread thread_;
 
     /// \brief Stop the thread.
+# ifdef CPP11
+    std::atomic<bool> killThread_;
+# else
+    mutex_t mtx_kill_thread_;
     bool killThread_;
+# endif
 
     /// \brief Time period.
     ros::Duration period_;
