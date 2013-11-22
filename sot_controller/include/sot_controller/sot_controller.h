@@ -44,17 +44,8 @@
 # include <dynamic_graph_bridge/ros_interpreter.hh>
 # include "sot_controller/sot_device.h"
 # include <boost/shared_ptr.hpp>
-
 # include <realtime_tools/realtime_publisher.h>
 # include <sensor_msgs/JointState.h>
-
-// Enable the collision check
-// Note: this is not real time safe due FCL
-//# define COLLISION_CHECK
-
-# ifdef COLLISION_CHECK
-# include <ros_control_pipeline/safety.hpp>
-# endif
 
 /**
  * \brief Position controller for the robot. It is wrapping sot_device.
@@ -73,42 +64,45 @@ public:
     SotController();
     ~SotController();
 
+    /// \brief Run python commands in the embedded python interpreter.
     void runPython(std::ostream& file, const std::string& command, dynamicgraph::Interpreter& interpreter);
+    /// \brief Configure the python enviroment and create entities for the dynamic graph.
     void startupPythonEnv(ros::NodeHandle& controller_nh);
+    /// \brief Load the free flyer pose from the parameter server.
     stdVector_t loadFreeFlyer(ros::NodeHandle& controller_nh) const;
-
+    /// \name Inherited control methods.
+    /// \{
     bool init(hardware_interface::PositionJointInterface *robot, ros::NodeHandle& root_nh, ros::NodeHandle& controller_nh);
     void starting(const ros::Time& time);
     void stopping(const ros::Time& time);
     void update(const ros::Time& time, const ros::Duration& period);
-
-
+    /// \}
+    /// \brief Get the device pointer.
     SotDevice* getDevicePtr();
 
 private:
-
+    /// \brief Define the log file name for the python startup.
     static const std::string LOG_PYTHON;
+    /// \brief Vector of joint handles.
     joints_t joints_;
+    /// \brief Vector of joint names.
     jointNames_t jointNames_;
+    /// \brief Free flyer pose.
     stdVector_t ffpose_;
-    stdVector_t init_conf_;
-
+    /// \brief Initial position of the robot, the size of this vector is equal to the number of joints plus six for the ff pose.
+    stdVector_t init_position_;
+    /// \brief Initial velocity of the robot, the size of this vector is equal to the number of joints plus six for the ff velocity.
+    stdVector_t init_velocity_;
     /// \brief Real time publisher.
     boost::shared_ptr<realtime_tools::RealtimePublisher<sensor_msgs::JointState> > publisher_;
-
     /// \brief Embedded python interpreter accessible via a ROS service.
     boost::shared_ptr<dynamicgraph::Interpreter> interpreter_;
-
     /// \brief Pointer to Entity StackOfTasks.
     SotDevice* device_;
+    /// \brief Position vector of the joints, the size of this vector is equal to the number of joints.
     stdVector_t position_;
+    /// \brief Velocity vector of the joints, the size of this vector is equal to the number of joints.
     stdVector_t velocity_;
-
-# ifdef COLLISION_CHECK
-    /// \brief Safety checker.
-    boost::shared_ptr<pipeline::BipedSafety>  bs_;
-# endif
-
 };
 }
 

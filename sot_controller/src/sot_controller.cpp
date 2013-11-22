@@ -39,12 +39,10 @@
 
 #include <sot_controller/sot_controller.h>
 #include <pluginlib/class_list_macros.h>
-
 #include <strings.h>
 #include <Python.h>
 #include <dynamic_graph_bridge/ros_init.hh>
 #include <dynamic_graph_bridge/RunCommand.h>
-
 #include <boost/thread/thread.hpp>
 #include <boost/thread/condition.hpp>
 
@@ -60,6 +58,9 @@ SotController::~SotController() {
     device_->stopThread();
     for (unsigned int i = 0; i < joints_.size(); ++i)
         ROS_INFO("Current joint_%d position: %f64\n",i+1,joints_[i].getPosition());
+
+    // Destroy the device
+    delete device_;
 }
 
 void SotController::runPython(std::ostream& file, const std::string& command, dynamicgraph::Interpreter& interpreter)
@@ -74,7 +75,6 @@ void SotController::runPython(std::ostream& file, const std::string& command, dy
             file << lout << std::endl;
             file << "------" << std::endl;
             file << lerr << std::endl;
-
             std::string err("Exception catched during sot controller initialization, please check the log file: " + LOG_PYTHON);
             throw std::runtime_error(err);
         }
@@ -193,8 +193,9 @@ bool SotController::init(hardware_interface::PositionJointInterface *robot, ros:
 
     unsigned int jointsSize = joints_.size();
 
-    // Resize the initial configuration vector
-    init_conf_.resize(ffpose_.size() + jointsSize);
+    // Resize the initial position and velocity vectors
+    init_position_.resize(ffpose_.size() + jointsSize);
+    init_velocity_.resize(ffpose_.size() + jointsSize);
 
     // Resize position_ and velocity_
     // From this point we are assuming they have a constant size
@@ -210,12 +211,6 @@ bool SotController::init(hardware_interface::PositionJointInterface *robot, ros:
         ROS_ERROR_STREAM(e.what());
     }
 
-# ifdef COLLISION_CHECK
-    // Create the self collision checker
-    // Note: dt is fixed to 0.0 because we are not going to use velocity limits
-    bs_.reset(new pipeline::BipedSafety(&root_nh,jointNames_,0.0));
-# endif
-
 # ifdef COLLISION_CHECK_DEVICE
     // Create the self collision checker in the device
     // Note: dt is fixed to 0.0 because we are not going to use velocity limits
@@ -229,61 +224,33 @@ bool SotController::init(hardware_interface::PositionJointInterface *robot, ros:
 }
 
 void SotController::starting(const ros::Time& time) {
-    // Merge the joints_ and ffpose_ vectors to create the initial configuration.
+    // Merge the joints_ and ffpose_ vectors to create the initial position.
     // The first 6 dofs of the state variable are associated to the Freeflyer frame
     // Freeflyer reference frame should be the same as global
     // frame so that operational point positions correspond to
     // position in freeflyer frame.
     // The freeflyer is automatically updated inside the solver.
     for (unsigned int i = 0; i<ffpose_.size(); i++)
-        init_conf_[i] = ffpose_[i];
-    for (unsigned int i = ffpose_.size(); i<init_conf_.size(); i++)
-        init_conf_[i] = joints_[i-ffpose_.size()].getPosition();
+        init_position_[i] = ffpose_[i];
+    for (unsigned int i = ffpose_.size(); i<init_position_.size(); i++)
+        init_position_[i] = joints_[i-ffpose_.size()].getPosition();
 
     // Call starting, this is setting up the current robot configuration into the device
-    device_->starting(init_conf_);
+    device_->starting(init_position_,init_velocity_);
 
 }
 
 void SotController::update(const ros::Time& time, const ros::Duration& period) {
 
-# ifdef CLOSED_LOOP
-    // Read the motor positions
-    for (unsigned int i = 0; i<joints_.size(); i++)
-        position_[i] = joints_[i].getPosition();
-
-    // Close the loop with the device
-    device_->setSharedPosition(position_);
-# endif
-
     // Trigger one sot computation
     device_->runDevice(period);
 
-# ifdef CLOSED_LOOP
-    // Let's be patient, wait the end of the computation
-    // Note: This is too fast!!!!!!!!!
-    // This is not working on the real time machine because it's using all
-    // the available cpu.
-    while(device_->getDeviceStatus()){}
-# endif
-
     // Take the new position and velocity from the sot
-    //device_->getSharedPosition(position_);
-    //device_->getSharedVelocity(velocity_);
-
     device_->getSharedState(position_,velocity_);
 
-# ifdef COLLISION_CHECK
-    // Check for collisions
-    if(bs_->is_safe(position_,time))
-        // Set the motor commands
-        for (unsigned int i = 0; i<joints_.size(); i++)
-            joints_[i].setCommand(position_[i]);
-# else
     // Set the motor commands
     for (unsigned int i = 0; i<joints_.size(); i++)
         joints_[i].setCommand(position_[i]);
-# endif
 
     // Publish the position and the velocity
     if(publisher_->trylock()){
@@ -297,7 +264,7 @@ void SotController::update(const ros::Time& time, const ros::Duration& period) {
 }
 
 void SotController::stopping(const ros::Time& time){
-    device_->setKillThreadStatus(true);
+    device_->setKillSignal(true);
 }
 
 stdVector_t SotController::loadFreeFlyer(ros::NodeHandle& controller_nh) const
@@ -329,7 +296,6 @@ stdVector_t SotController::loadFreeFlyer(ros::NodeHandle& controller_nh) const
 
     return res;
 }
-
 }// namespace
 
 PLUGINLIB_DECLARE_CLASS(sot_controller,
