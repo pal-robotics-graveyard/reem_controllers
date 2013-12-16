@@ -56,7 +56,7 @@ SotController::SotController():
 
 SotController::~SotController() {
     device_->stopThread();
-    for (unsigned int i = 0; i < joints_.size(); ++i)
+    for (int i = 0; i < (int)joints_.size(); i++)
         ROS_INFO("Current joint_%d position: %f64\n",i+1,joints_[i].getPosition());
 
     // Destroy the device
@@ -191,7 +191,7 @@ bool SotController::init(hardware_interface::PositionJointInterface *robot, ros:
     // Load the initial free flyer configuration from the parameter server
     ffpose_ = loadFreeFlyer(controller_nh);
 
-    unsigned int jointsSize = joints_.size();
+    int jointsSize = joints_.size();
 
     // Resize the initial position and velocity vectors
     init_position_.resize(ffpose_.size() + jointsSize);
@@ -211,11 +211,16 @@ bool SotController::init(hardware_interface::PositionJointInterface *robot, ros:
         ROS_ERROR_STREAM(e.what());
     }
 
-# ifdef COLLISION_CHECK_DEVICE
     // Create the self collision checker in the device
-    // Note: dt is fixed to 0.0 because we are not going to use velocity limits
-    device_->bs_.reset(new pipeline::BipedSafety(&root_nh,jointNames_,0.0));
-# endif
+    bool self_collision_check;
+    std::string param_name = "collision_check";
+    // By default the self collision check is activate
+    // TODO: add a parameter for the verbosity of the collision checker
+    controller_nh.param(param_name, self_collision_check, true);
+    if(self_collision_check){
+        device_->enableSelfCollisionCheck(root_nh,jointNames_);
+        ROS_INFO("sot_controller: Self collision check activate");
+    }
 
     // Create the thread
     device_->startThread();
@@ -230,9 +235,9 @@ void SotController::starting(const ros::Time& time) {
     // frame so that operational point positions correspond to
     // position in freeflyer frame.
     // The freeflyer is automatically updated inside the solver.
-    for (unsigned int i = 0; i<ffpose_.size(); i++)
+    for (int i = 0; i<(int)ffpose_.size(); ++i)
         init_position_[i] = ffpose_[i];
-    for (unsigned int i = ffpose_.size(); i<init_position_.size(); i++)
+    for (int i = ffpose_.size(); i<(int)init_position_.size(); ++i)
         init_position_[i] = joints_[i-ffpose_.size()].getPosition();
 
     // Call starting, this is setting up the current robot configuration into the device
@@ -249,13 +254,13 @@ void SotController::update(const ros::Time& time, const ros::Duration& period) {
     device_->getSharedState(position_,velocity_);
 
     // Set the motor commands
-    for (unsigned int i = 0; i<joints_.size(); i++)
+    for (int i = 0; i<(int)joints_.size(); ++i)
         joints_[i].setCommand(position_[i]);
 
     // Publish the position and the velocity
     if(publisher_->trylock()){
         publisher_->msg_.header.stamp = time;
-        for (unsigned int i = 0; i<joints_.size(); i++){
+        for (int i = 0; i<(int)joints_.size(); ++i){
             publisher_->msg_.position[i] = position_[i];
             publisher_->msg_.velocity[i] = velocity_[i];
         }
@@ -275,7 +280,7 @@ stdVector_t SotController::loadFreeFlyer(ros::NodeHandle& controller_nh) const
         controller_nh.getParam(param_name, ffpose);
         ROS_ASSERT(ffpose.getType() == XmlRpc::XmlRpcValue::TypeArray);
         ROS_ASSERT(ffpose.size() == 6);
-        for (int i = 0; i < ffpose.size(); ++i)
+        for (int i = 0; i < (int)ffpose.size(); ++i)
         {
             ROS_ASSERT(ffpose[i].getType() == XmlRpc::XmlRpcValue::TypeDouble);
         }
@@ -284,14 +289,14 @@ stdVector_t SotController::loadFreeFlyer(ros::NodeHandle& controller_nh) const
     {
         ROS_INFO("sot_control: No free flyer pose defined on the parameter server, default pose loaded (0.0,0.0,0.0,0.0,0.0,0.0)");
         ffpose.setSize(6);
-        for (int i = 0; i < ffpose.size(); ++i)
+        for (int i = 0; i < (int)ffpose.size(); ++i)
             ffpose[i] = 0.0;
     }
 
     // Convert to standard vector
     stdVector_t res;
     res.resize(ffpose.size());
-    for (unsigned int i = 0; i < res.size(); ++i)
+    for (stdVector_t::size_type i = 0; i < res.size(); ++i)
         res[i] = static_cast<double>(ffpose[i]);
 
     return res;

@@ -103,6 +103,7 @@ private:
     stdVector_t position_;
     /// \brief Velocity vector of the joints, the size of this vector is equal to the number of joints.
     stdVector_t velocity_;
+
 };
 }
 

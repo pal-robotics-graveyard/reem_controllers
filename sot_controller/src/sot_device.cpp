@@ -74,7 +74,8 @@ SotDevice::SotDevice(const std::string& entityName):
     velocitySOUT("SotDevice("+entityName+")::output(vector)::velocity"),
     dtSOUT("SotDevice("+entityName+")::output(double)::dt"),
     status_(false),
-    period_(0.01)
+    period_(0.01),
+    self_collision_(false)
 {
     // Register signals into the entity.
     signalRegistration(velocitySOUT);
@@ -83,13 +84,13 @@ SotDevice::SotDevice(const std::string& entityName):
 
 SotDevice::~SotDevice(){}
 
-bool SotDevice::init(unsigned int jointsSize)
+bool SotDevice::init(int jointsSize)
 {
     // Read state from dynamic graph and use it to check the sizes
     int t = stateSOUT.getTime();
     maal::boost::Vector state = stateSOUT.access(t);
-    const unsigned int internalStateSize = state.size();
-    const unsigned int externalStateSize = jointsSize + offset_;
+    const int internalStateSize = state.size();
+    const int externalStateSize = jointsSize + offset_;
 
     sotDEBUG(25) << "stateSOUT.access ("<< t << ") = " << state << std::endl;
     sotDEBUG(25) << "state size from dynamic graph = " << internalStateSize << std::endl;
@@ -100,9 +101,8 @@ bool SotDevice::init(unsigned int jointsSize)
         // We are not in real time yet
         shared_position_.resize(internalStateSize);
         shared_velocity_.resize(internalStateSize);
-# ifdef COLLISION_CHECK_DEVICE
+        // This vector is used for the self collision check
         jointPositions_.resize(jointsSize);
-# endif
         state_size_ = internalStateSize;
         return true;
     }
@@ -147,14 +147,14 @@ void SotDevice::setSharedState(stdVector_t const &inputPosition,stdVector_t cons
     if(guard.try_lock()){
         // inputPosition and inputVelocity contain the ffpose
         if(inputPosition.size() == state_size_ && inputVelocity.size() == state_size_){
-            for (unsigned i = 0; i<state_size_; i++){
+            for (int i = 0; i<state_size_; ++i){
                 shared_position_(i) = inputPosition[i];
                 shared_velocity_(i) = inputVelocity[i];
             }
         }
         // inputPosition and inputVelocity don't contain the ffpose
         else
-            for (unsigned i = 0; i<(state_size_-offset_); i++){
+            for (int i = 0; i<(state_size_-offset_); ++i){
                 shared_position_(i+offset_) = inputPosition[i];
                 shared_velocity_(i+offset_) = inputVelocity[i];
             }
@@ -164,9 +164,10 @@ void SotDevice::setSharedState(stdVector_t const &inputPosition,stdVector_t cons
 
 bool SotDevice::getSharedState(stdVector_t &outputPosition, stdVector_t &outputVelocity){
     boost::unique_lock<mutex_t> guard(mtx_state_,boost::defer_lock);
+
     if(guard.try_lock()){
         // outputPosition and outputVelocity don't contain the ffpose
-        for (unsigned i = 0; i<state_size_-offset_; i++){
+        for (int i = 0; i<state_size_-offset_; ++i){
             outputPosition[i] = shared_position_(i+offset_);
             outputVelocity[i] = shared_velocity_(i+offset_);
         }
@@ -204,16 +205,16 @@ void SotDevice::computeNewState() {
         dtSOUT.setConstant(period_.toSec());
         dtSOUT.setTime(controlSIN.getTime());
 
-# ifdef COLLISION_CHECK_DEVICE
-        for (unsigned i = 0; i < jointPositions_.size(); ++i)
-            jointPositions_[i] = (state_(i+offset_));
-        if(bs_->is_safe(jointPositions_))
-            // Position safe, set the new state
+        if(self_collision_){
+            for (int i = 0; i < jointPositions_.size(); ++i)
+                jointPositions_[i] = (state_(i+offset_));
+            if(bs_->is_safe(jointPositions_))
+                // Position safe, set the new state
+                setSharedState(state_,control_);
+        } else{
+            // Set the new state
             setSharedState(state_,control_);
-# else
-        // Set the new state
-        setSharedState(state_,control_);
-# endif
+        }
 
     }
     catch (...)
@@ -243,6 +244,12 @@ bool SotDevice::getKillSignal() {
 
 void SotDevice::setKillSignal(const bool kill) {
     killThread_ = kill;
+}
+
+void SotDevice::enableSelfCollisionCheck(ros::NodeHandle& node, jointNames_t jointNames){
+    // Note: dt is fixed to 0.0 because we are not going to use velocity limits
+    bs_.reset(new pipeline::BipedSafety(&node,jointNames,0.0));
+    self_collision_ = true;
 }
 
 void SotDevice::update(){

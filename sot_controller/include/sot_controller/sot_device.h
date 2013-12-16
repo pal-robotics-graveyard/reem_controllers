@@ -43,18 +43,10 @@
 # include <sot/core/device.hh>
 # include <forward_command_controller/forward_command_controller.h>
 # include <boost/thread.hpp>
-
-# define CPP11
-# ifdef CPP11
 # include <atomic>
-# endif
 
-// Enable the collision check in the device
-// # define COLLISION_CHECK_DEVICE
-
-# ifdef COLLISION_CHECK_DEVICE
+// Include it for the self collision check
 # include <ros_control_pipeline/safety.hpp>
-# endif
 
 /**
  * \brief Interface controller for the stack of tasks. It is wrapped by sot_controller.
@@ -81,7 +73,7 @@ public:
     /// \name Inherited control methods.
     /// \{
     /// \brief Non real-time device start.
-    bool init(unsigned int jointsSize);
+    bool init(int jointsSize);
 
     /// \brief Called when the plug-in is started.
     void starting(const stdVector_t& initPos, const stdVector_t& initVel);
@@ -131,12 +123,11 @@ public:
     /// \brief Sample time, given by the controller manager.
     dynamicgraph::Signal<double,int> dtSOUT;
 
-# ifdef COLLISION_CHECK_DEVICE
+    /// \brief Enable the self collision check.
+    void enableSelfCollisionCheck(ros::NodeHandle& node, jointNames_t jointNames);
+
     /// \brief Safety checker.
     boost::shared_ptr<pipeline::BipedSafety>  bs_;
-    /// \brief Joint positions.
-    stdVector_t jointPositions_;
-# endif
 
 private:
 
@@ -167,7 +158,12 @@ private:
     int state_size_;
 
     /// \brief Default dimension for the free flyer pose.
-    static const unsigned int offset_ = 6;
+    static const int offset_ = 6;
+
+    /// \brief Joint positions.
+    stdVector_t jointPositions_;
+    /// \brief Collision check variable.
+    bool self_collision_;
 };
 
 }
