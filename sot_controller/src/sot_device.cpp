@@ -154,7 +154,7 @@ void SotDevice::setSharedState(stdVector_t const &inputPosition,stdVector_t cons
         }
         // inputPosition and inputVelocity don't contain the ffpose
         else
-            for (int i = 0; i<(state_size_-offset_); ++i){
+            for (int i = 0; i<state_size_-offset_; ++i){
                 shared_position_(i+offset_) = inputPosition[i];
                 shared_velocity_(i+offset_) = inputVelocity[i];
             }
@@ -206,8 +206,7 @@ void SotDevice::computeNewState() {
         dtSOUT.setTime(controlSIN.getTime());
 
         if(self_collision_){
-            int joint_size = jointPositions_.size();
-            for (int i = 0; i < joint_size; ++i)
+            for (int i = 0; i < jointPositions_.size(); ++i)
                 jointPositions_[i] = (state_(i+offset_));
             if(bs_->is_safe(jointPositions_))
                 // Position safe, set the new state
