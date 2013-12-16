@@ -206,7 +206,8 @@ void SotDevice::computeNewState() {
         dtSOUT.setTime(controlSIN.getTime());
 
         if(self_collision_){
-            for (int i = 0; i < jointPositions_.size(); ++i)
+            int joint_size = jointPositions_.size();
+            for (int i = 0; i < joint_size; ++i)
                 jointPositions_[i] = (state_(i+offset_));
             if(bs_->is_safe(jointPositions_))
                 // Position safe, set the new state

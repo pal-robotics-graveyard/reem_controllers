@@ -56,7 +56,7 @@ SotController::SotController():
 
 SotController::~SotController() {
     device_->stopThread();
-    for (int i = 0; i < (int)joints_.size(); i++)
+    for (stdVector_t::size_type i = 0; i < joints_.size(); i++)
         ROS_INFO("Current joint_%d position: %f64\n",i+1,joints_[i].getPosition());
 
     // Destroy the device
@@ -235,9 +235,9 @@ void SotController::starting(const ros::Time& time) {
     // frame so that operational point positions correspond to
     // position in freeflyer frame.
     // The freeflyer is automatically updated inside the solver.
-    for (int i = 0; i<(int)ffpose_.size(); ++i)
+    for (stdVector_t::size_type i = 0; i<ffpose_.size(); ++i)
         init_position_[i] = ffpose_[i];
-    for (int i = ffpose_.size(); i<(int)init_position_.size(); ++i)
+    for (stdVector_t::size_type i = ffpose_.size(); i<init_position_.size(); ++i)
         init_position_[i] = joints_[i-ffpose_.size()].getPosition();
 
     // Call starting, this is setting up the current robot configuration into the device
@@ -254,13 +254,13 @@ void SotController::update(const ros::Time& time, const ros::Duration& period) {
     device_->getSharedState(position_,velocity_);
 
     // Set the motor commands
-    for (int i = 0; i<(int)joints_.size(); ++i)
+    for (stdVector_t::size_type i = 0; i<joints_.size(); ++i)
         joints_[i].setCommand(position_[i]);
 
     // Publish the position and the velocity
     if(publisher_->trylock()){
         publisher_->msg_.header.stamp = time;
-        for (int i = 0; i<(int)joints_.size(); ++i){
+        for (stdVector_t::size_type i = 0; i < joints_.size(); ++i){
             publisher_->msg_.position[i] = position_[i];
             publisher_->msg_.velocity[i] = velocity_[i];
         }
@@ -280,7 +280,7 @@ stdVector_t SotController::loadFreeFlyer(ros::NodeHandle& controller_nh) const
         controller_nh.getParam(param_name, ffpose);
         ROS_ASSERT(ffpose.getType() == XmlRpc::XmlRpcValue::TypeArray);
         ROS_ASSERT(ffpose.size() == 6);
-        for (int i = 0; i < (int)ffpose.size(); ++i)
+        for (stdVector_t::size_type i = 0; i < ffpose.size(); ++i)
         {
             ROS_ASSERT(ffpose[i].getType() == XmlRpc::XmlRpcValue::TypeDouble);
         }
@@ -289,7 +289,7 @@ stdVector_t SotController::loadFreeFlyer(ros::NodeHandle& controller_nh) const
     {
         ROS_INFO("sot_control: No free flyer pose defined on the parameter server, default pose loaded (0.0,0.0,0.0,0.0,0.0,0.0)");
         ffpose.setSize(6);
-        for (int i = 0; i < (int)ffpose.size(); ++i)
+        for (stdVector_t::size_type i = 0; i < ffpose.size(); ++i)
             ffpose[i] = 0.0;
     }
 
